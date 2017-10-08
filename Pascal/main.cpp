@@ -22,7 +22,10 @@ int main(int argc, char* argv[])
 	cout << "Reading from \"" << filename << "\"" << endl;
 
 	Lexer lexer;
-	lexer.fileAssign(filename);
+	lexer.fileAssign(filename); //Assign our file to lexer
+
+	if (!lexer.parse())				//Parse our file
+		cout << "Somewhat error happened";
 
 	system("pause");
 	return 0;

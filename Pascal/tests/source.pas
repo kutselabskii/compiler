@@ -1,2 +1,0 @@
-program abc;
-uses crt;

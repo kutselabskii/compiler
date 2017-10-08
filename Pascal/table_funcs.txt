@@ -1,0 +1,12 @@
+const int fsm[100][100] = 
+{
+			//Symbol
+	//State   space          letter        digit        \n           
+	/*IDLE*/  {idleToIdle,   idleToName,     INT,       idleToName},
+	/*NAME*/  {nameToIdle,   nameToName,   nameToName,  nameToIdle},
+	/*INT*/   {IDLE,  ERROR,     INT,  IDLE },
+
+	/*ERROR*/ {}
+};
+
+Do I even need this??
