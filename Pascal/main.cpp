@@ -12,8 +12,10 @@ int main(int argc, char* argv[])
 	else
 	{
 		char *p = argv[1];
-		for (int i = 0; *p; p++, i++)
-			filename[i] = *p;
+		int fl;
+		for (fl = 0; *p != '\0'; p++, fl++)
+			filename[fl] = *p;
+		filename[fl] = '\0';
 	}
 
 	cout << "Reading from \"" << filename << "\"" << endl;
