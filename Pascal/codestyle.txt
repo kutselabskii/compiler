@@ -1,0 +1,13 @@
+File names: 
+	lowercase_with_underscores.h
+
+Classes : 
+	class CamelCase
+Variables: 
+	long lowercase_with_underscores
+Private variables:
+	long same_with_underscore_
+Functions and methods:
+	int mixedCase(int variable)
+Private methods:
+	void mixedCasePlusUnderscore_()
