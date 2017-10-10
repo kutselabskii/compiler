@@ -2,6 +2,7 @@
 
 //System includes
 #include <iostream>
+#include <string>
 using namespace std;
 
 //Project includes
@@ -9,20 +10,18 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
-	char filename[100];
+	string filename;
 
 	if (argc == 1)	//Acquiring name of file to compile
 	{
-		cout << "Enter filename to compile" << endl;
-		cin >> filename;
+		cout << "Pascal compiler version 0.1 'Lexer'" << endl << "Made by Egor Kutselabskii, FEFU" << endl << "Curator: Alexander Klenin";
 	}
 	else
-		strcpy(filename, argv[1]);
-
-	cout << "Reading from \"" << filename << "\"" << endl;
+		filename = argv[1];
 
 	Lexer lexer;
-	lexer.fileAssign(filename); //Assign our file to lexer
+	if (!lexer.fileAssign(filename)) //Assign our file to lexer
+		return -1;
 
 	if (!lexer.parse())				//Parse our file
 		cout << "Somewhat error happened";
@@ -30,3 +29,10 @@ int main(int argc, char* argv[])
 	system("pause");
 	return 0;
 }
+
+//NOW WE'RE DOING
+//Learn if ',' and '.' is operators
+//Handle INT numbers
+//Handle FLOAT numbers
+//Need to handle errors for sure
+//Think about handling brackets

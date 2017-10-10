@@ -6,28 +6,35 @@
 #include <ctype.h>
 #include <string>
 
-//Table of states
-#define IDLE 0
-#define NAME 1
-#define INT 2
-#define OPERATOR 3
-#define ERROR 4
-
-//Symbol codes
-#define SPACE 0
-#define LETTER 1
-#define DIGIT 2
-#define OP_SIGN 3
+enum States	//State codes
+{
+	IDLE,
+	NAME,
+	INT,
+	OPERATOR,
+	SEPARATOR,
+	ERROR
+};
 
 
-const int fsm[100][100] = 
+enum Codes	//Symbol codes
+{
+	SPACE,
+	LETTER,
+	DIGIT,
+	OP_SIGN,
+	SEP_SIGN
+};
+
+const States fsm[100][100] = 
 {
 			       //Symbol
-	//State          space + \n,   letter,   digit,   operator (;, +, :=)
-	/*IDLE*/         {IDLE,          NAME,     INT,    OPERATOR },
-	/*NAME*/         {IDLE,          NAME,    NAME,    OPERATOR },
-	/*INT*/          {IDLE,         ERROR,     INT,    OPERATOR },
-	/*OPERATOR*/     {IDLE,          NAME,     INT,    ERROR},
+	//State          space + \n,   letter,   digit,   operator,    separator
+	/*IDLE*/         {IDLE,          NAME,     INT,    OPERATOR,   SEPARATOR},
+	/*NAME*/         {IDLE,          NAME,    NAME,    OPERATOR,   SEPARATOR},
+	/*INT*/          {IDLE,         ERROR,     INT,    OPERATOR,   ERROR},
+	/*OPERATOR*/     {IDLE,          NAME,     INT,       ERROR,   SEPARATOR},
+	/*SEPARATOR*/	 {IDLE,          NAME,     INT,    OPERATOR,   SEPARATOR},
 
 	/*ERROR*/        { }
 };
@@ -40,7 +47,7 @@ public:
 	Lexer();
 	~Lexer();
 
-	bool fileAssign(char *filename);	//Assign a file to lexer (logs)
+	bool fileAssign(std::string filename);	//Assign a file to lexer (logs)
 	bool parse();						//Parse assigned file (logs)
 
 private:
@@ -50,28 +57,53 @@ private:
 	char file_buffer_[200];	//Current line in (^) file
 	char *current_symbol_;	//Current symbol in (^) line
 
-	int state_;				//Current state of a system
+	int line_number_;
+	int column_number_;
+
+	States state_;				//Current state of a system
 	std::string token_;		//Current token
 
-	int charIdentify_(char symbol); //Type of current_symbol_
+	Codes charIdentify_(char symbol); //Type of current_symbol_
 
 	//Processing functions
 
 	//Utility functions for the processing functions
-	void pushAndStep();
+	void pushAndStep_();
+	void print_(std::string);
+	void printTable_();
 
 	//IDLE state
 	void idleToIdle();
 	void idleToName();
+	void idleToInt();
 	void idleToOperator();
+	void idleToSeparator();
 
 	//NAME state
 	void nameToIdle();
 	void nameToName();
 	void nameToOperator();
+	/*void nameToInt(); No cases*/
+	void nameToSeparator();
+
+	//INT state
+	void intToIdle();
+	/*void intToName(); No cases*/
+	void intToInt();
+	void intToOperator();
+	void intToSeparator();
 
 	//OPERATOR state
 	void operatorToIdle();
 	void operatorToName();
+	void operatorToInt();
 	void operatorToOperator();
+	void operatorToSeparator();
+
+	//SEPARATOR state
+	void separatorToIdle();
+	void separatorToName();
+	void separatorToInt();
+	void separatorToOperator();
+	void separatorToSeparator();
 };

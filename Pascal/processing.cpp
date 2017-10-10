@@ -3,87 +3,231 @@
 using namespace std;
 
 //Utility functions for the processing functions
-void Lexer::pushAndStep()
+void Lexer::pushAndStep_()
 {
-	this->token_.push_back(*this->current_symbol_);
-	this->current_symbol_++;
+	token_.push_back(*current_symbol_);
+	current_symbol_++;
+	column_number_++;
+}
+
+void Lexer::print_(string type)
+{
+	cout.width(8);
+	cout << line_number_;
+	cout.width(8);
+	cout << column_number_;
+	cout.width(25);
+	cout << type;
+	cout.width(25);
+	cout << token_.c_str() << endl;
+
+	token_.clear();
+}
+
+void Lexer::printTable_()
+{
+	cout.width(8);
+	cout << "Line";
+	cout.width(8);
+	cout << "Col";
+	cout.width(25);
+	cout << "Type";
+	cout.width(25);
+	cout << "Code representation" << endl;
 }
 
 
 //IDLE state
 void Lexer::idleToIdle()
 {
-	this->current_symbol_++;
+	current_symbol_++;
 }
 
 void Lexer::idleToName()
 {
-	this->state_ = NAME;
+	state_ = NAME;
 
-	this->pushAndStep();
+	pushAndStep_();
+}
+
+void Lexer::idleToInt()
+{
+	state_ = INT;
+
+	pushAndStep_();
 }
 
 void Lexer::idleToOperator()
 {
-	this->state_ = OPERATOR;
+	state_ = OPERATOR;
 
-	this->pushAndStep();
+	pushAndStep_();
+}
+
+void Lexer::idleToSeparator()
+{
+	state_ = SEPARATOR;
+
+	pushAndStep_();
 }
 
 
 //NAME state
 void Lexer::nameToIdle()
 {
-	this->state_ = IDLE;
+	state_ = IDLE;
 
-	cout << "Lexer:: OK:: " <<  this->token_.c_str() << "  is  NAME" << endl;
-	this->token_.clear();
+	print_("NAME");
 }
 
 void Lexer::nameToName()
 {
-	this->pushAndStep();
+	pushAndStep_();
 }
 
 void Lexer::nameToOperator()
 {
-	this->state_ = OPERATOR;
+	state_ = OPERATOR;
 
-	cout << "Lexer:: OK:: " << this->token_.c_str() << "  is  NAME" << endl;
-	this->token_.clear();
+	print_("NAME");
 
-	this->pushAndStep();
+	pushAndStep_();
 }
 
+void Lexer::nameToSeparator()
+{
+	state_ = SEPARATOR;
+
+	print_("NAME");
+
+	pushAndStep_();
+}
+
+
+//INT state
+void Lexer::intToIdle()
+{
+	state_ = IDLE;
+
+	print_("INT");
+}
+
+void Lexer::intToInt()
+{
+	pushAndStep_();
+}
+
+void Lexer::intToOperator()
+{
+	state_ = OPERATOR;
+
+	print_("INT");
+
+	pushAndStep_();
+}
+
+void Lexer::intToSeparator()
+{
+	state_ = SEPARATOR;
+
+	print_("INT");
+
+	pushAndStep_();
+}
 
 //OPERATOR state
 void Lexer::operatorToIdle()
 {
-	this->state_ = IDLE;
+	state_ = IDLE;
 
-	//Couple of 'if' statements should provide better operator recognition (for example: := is assignment)
-	cout << "Lexer:: OK:: " << this->token_.c_str() << "  is  OPERATOR" << endl;
-	this->token_.clear();
+	print_("OPERATOR");
 }
 
 void Lexer::operatorToName()
 {
-	this->state_ = NAME;
+	state_ = NAME;
 
-	//Couple of 'if' statements should provide better operator recognition (for example: := is assignment)
-	cout << "Lexer:: OK:: " << this->token_.c_str() << "  is  OPERATOR" << endl;
-	this->token_.clear();
+	print_("OPERATOR");
 
-	this->pushAndStep();
+	pushAndStep_();
+}
+
+void Lexer::operatorToInt()
+{
+	state_ = INT;
+
+	print_("OPERATOR");
+
+	pushAndStep_();
 }
 
 void Lexer::operatorToOperator()
 {
-	if (this->token_.length() == 2)
+	if (token_.length() == 2)
 	{
-		cout << "Lexer:: OK:: " << this->token_.c_str() << "  is  OPERATOR" << endl;	//TODO Check this one, maybe some errors can be there
-		this->token_.clear();
+		print_("OPERATOR");
 	}
 
-	this->pushAndStep();
+	pushAndStep_();
+}
+
+void Lexer::operatorToSeparator()	
+{
+	state_ = SEPARATOR;
+
+	print_("OPERATOR");
+
+	pushAndStep_();
+}
+
+
+//SEPARATOR state
+void Lexer::separatorToIdle()
+{
+	state_ = IDLE;
+
+	print_("SEPARATOR");
+
+	pushAndStep_();
+}
+
+void Lexer::separatorToName()
+{
+	state_ = NAME;
+
+	print_("SEPARATOR");
+
+	pushAndStep_();
+}
+
+void Lexer::separatorToInt()
+{
+	state_ = INT;
+
+	print_("SEPARATOR");
+
+	pushAndStep_();
+}
+
+void Lexer::separatorToOperator()
+{
+	if ((token_ == "(" && *current_symbol_ == '.') || (token_ == ":" && *current_symbol_ == '='))
+	{
+		state_ = IDLE;
+		pushAndStep_();
+		print_("OPERATOR");
+	}
+	else
+	{
+		state_ = OPERATOR;
+		print_("SEPARATOR");
+		pushAndStep_();
+	}
+}
+
+void Lexer::separatorToSeparator()
+{
+	state_ = SEPARATOR;
+	print_("SEPARATOR");
+	pushAndStep_();
 }
