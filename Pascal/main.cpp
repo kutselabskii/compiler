@@ -31,8 +31,4 @@ int main(int argc, char* argv[])
 }
 
 //NOW WE'RE DOING
-//Learn if ',' and '.' is operators
-//Handle INT numbers
-//Handle FLOAT numbers
-//Need to handle errors for sure
-//Think about handling brackets
+//Float and Errors, strings

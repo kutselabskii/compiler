@@ -30,10 +30,17 @@ Lexer::Lexer()
 
 	//INT state
 	action_[INT][SPACE] = &Lexer::intToIdle;
-	//action_[INT][LETTER] =
+	action_[INT][LETTER] = &Lexer::intToName;
 	action_[INT][DIGIT] = &Lexer::intToInt;
 	action_[INT][OP_SIGN] = &Lexer::intToOperator;
 	action_[INT][SEP_SIGN] = &Lexer::intToSeparator;
+
+	//FLOAT state
+	action_[FLOAT][SPACE] = &Lexer::floatToIdle;
+	action_[FLOAT][LETTER] = &Lexer::floatToName;
+	action_[FLOAT][DIGIT] = &Lexer::floatToFloat;
+	action_[FLOAT][OP_SIGN] = &Lexer::floatToOperator;
+	action_[FLOAT][SEP_SIGN] = &Lexer::floatToSeparator;
 
 	//OPERATOR state
 	action_[OPERATOR][SPACE] = &Lexer::operatorToIdle;

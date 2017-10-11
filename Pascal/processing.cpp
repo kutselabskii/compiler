@@ -16,9 +16,9 @@ void Lexer::print_(string type)
 	cout << line_number_;
 	cout.width(8);
 	cout << column_number_;
-	cout.width(25);
+	cout.width(40);
 	cout << type;
-	cout.width(25);
+	cout.width(40);
 	cout << token_.c_str() << endl;
 
 	token_.clear();
@@ -30,9 +30,9 @@ void Lexer::printTable_()
 	cout << "Line";
 	cout.width(8);
 	cout << "Col";
-	cout.width(25);
+	cout.width(40);
 	cout << "Type";
-	cout.width(25);
+	cout.width(40);
 	cout << "Code representation" << endl;
 }
 
@@ -117,13 +117,37 @@ void Lexer::intToInt()
 	pushAndStep_();
 }
 
+void Lexer::intToName()
+{
+	if (*current_symbol_ == 'e')
+	{
+		state_ = FLOAT;
+		pushAndStep_();
+	}
+	else
+	{
+		state_ = IDLE;
+
+		while (charIdentify_(*current_symbol_) == LETTER)
+			pushAndStep_();
+		print_("ERROR: Unexp. sym. in INT token");
+	}
+}
+
 void Lexer::intToOperator()
 {
-	state_ = OPERATOR;
+	if (*current_symbol_ == '.')
+	{
+		state_ = FLOAT;
+		pushAndStep_();
+	}
+	else
+	{
 
-	print_("INT");
-
-	pushAndStep_();
+		state_ = OPERATOR;
+		print_("INT");
+		pushAndStep_();
+	}
 }
 
 void Lexer::intToSeparator()
@@ -132,6 +156,44 @@ void Lexer::intToSeparator()
 
 	print_("INT");
 
+	pushAndStep_();
+}
+
+
+//FLOAT state
+void Lexer::floatToIdle()
+{
+	state_ = IDLE;
+
+	print_("FLOAT");
+	pushAndStep_();
+}
+
+void Lexer::floatToName()
+{
+	state_ = IDLE;
+
+	while (charIdentify_(*current_symbol_) == LETTER)
+		pushAndStep_();
+	print_("ERROR: Unexp. sym. in FLOAT token");
+}
+
+void Lexer::floatToFloat()
+{
+	pushAndStep_();
+}
+
+void Lexer::floatToOperator()
+{
+	state_ = OPERATOR;
+	print_("FLOAT");
+	pushAndStep_();
+}
+
+void Lexer::floatToSeparator()
+{
+	state_ = SEPARATOR;
+	print_("FLOAT");
 	pushAndStep_();
 }
 

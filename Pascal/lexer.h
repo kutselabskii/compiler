@@ -11,6 +11,7 @@ enum States	//State codes
 	IDLE,
 	NAME,
 	INT,
+	FLOAT,
 	OPERATOR,
 	SEPARATOR,
 	ERROR
@@ -33,8 +34,10 @@ const States fsm[100][100] =
 	/*IDLE*/         {IDLE,          NAME,     INT,    OPERATOR,   SEPARATOR},
 	/*NAME*/         {IDLE,          NAME,    NAME,    OPERATOR,   SEPARATOR},
 	/*INT*/          {IDLE,         ERROR,     INT,    OPERATOR,   ERROR},
+	/*FLOAT*/        {IDLE,         ERROR,   FLOAT,    OPERATOR,   ERROR},
 	/*OPERATOR*/     {IDLE,          NAME,     INT,       ERROR,   SEPARATOR},
 	/*SEPARATOR*/	 {IDLE,          NAME,     INT,    OPERATOR,   SEPARATOR},
+
 
 	/*ERROR*/        { }
 };
@@ -88,10 +91,17 @@ private:
 
 	//INT state
 	void intToIdle();
-	/*void intToName(); No cases*/
+	void intToName();	//Error state
 	void intToInt();
 	void intToOperator();
 	void intToSeparator();
+
+	//FLOAT state
+	void floatToIdle();
+	void floatToName();
+	void floatToFloat();
+	void floatToOperator();
+	void floatToSeparator();
 
 	//OPERATOR state
 	void operatorToIdle();
