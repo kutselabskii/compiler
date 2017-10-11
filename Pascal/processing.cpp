@@ -138,8 +138,17 @@ void Lexer::intToOperator()
 {
 	if (*current_symbol_ == '.')
 	{
-		state_ = FLOAT;
-		pushAndStep_();
+		if (*(current_symbol_ + 1) == '.')
+		{
+			state_ = OPERATOR;
+			print_("INT");
+			pushAndStep_();
+		}
+		else
+		{
+			state_ = FLOAT;
+			pushAndStep_();
+		}
 	}
 	else
 	{
@@ -163,10 +172,18 @@ void Lexer::intToSeparator()
 //FLOAT state
 void Lexer::floatToIdle()
 {
-	state_ = IDLE;
-
-	print_("FLOAT");
-	pushAndStep_();
+	if (charIdentify_(token_.back()) != DIGIT)
+	{
+		state_ = IDLE;
+		print_("ERROR: Unexp. end of a FLOAT token");
+		pushAndStep_();
+	}
+	else
+	{
+		state_ = IDLE;
+		print_("FLOAT");
+		pushAndStep_();
+	}
 }
 
 void Lexer::floatToName()
