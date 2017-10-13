@@ -12,6 +12,7 @@ enum States	//State codes
 	NAME,
 	INT,
 	FLOAT,
+	STRING,
 	OPERATOR,
 	SEPARATOR,
 	ERROR
@@ -24,20 +25,22 @@ enum Codes	//Symbol codes
 	LETTER,
 	DIGIT,
 	OP_SIGN,
-	SEP_SIGN
+	SEP_SIGN,
+	QUOTE,
+	UNKNOWN
 };
 
 const States fsm[100][100] = 
 {
 			       //Symbol
-	//State          space + \n,   letter,   digit,   operator,    separator
-	/*IDLE*/         {IDLE,          NAME,     INT,    OPERATOR,   SEPARATOR},
-	/*NAME*/         {IDLE,          NAME,    NAME,    OPERATOR,   SEPARATOR},
-	/*INT*/          {IDLE,         ERROR,     INT,    OPERATOR,   ERROR},
-	/*FLOAT*/        {IDLE,         ERROR,   FLOAT,    OPERATOR,   ERROR},
-	/*OPERATOR*/     {IDLE,          NAME,     INT,       ERROR,   SEPARATOR},
-	/*SEPARATOR*/	 {IDLE,          NAME,     INT,    OPERATOR,   SEPARATOR},
-
+	//State          space + \n,   letter,   digit,    quote,      operator,    separator   unknown
+	/*IDLE*/         {IDLE,          NAME,     INT,    STRING,     OPERATOR,   SEPARATOR,   ERROR},
+	/*NAME*/         {IDLE,          NAME,    NAME,     ERROR,     OPERATOR,   SEPARATOR,   ERROR},
+	/*INT*/          {IDLE,         ERROR,     INT,     ERROR,     OPERATOR,       ERROR,   ERROR},
+	/*FLOAT*/        {IDLE,         ERROR,   FLOAT,     ERROR,     OPERATOR,       ERROR,   ERROR},
+	/*STRING*/       {STRING,      STRING,  STRING,      IDLE,       STRING,      STRING,  STRING},
+	/*OPERATOR*/     {IDLE,          NAME,     INT,    STRING,        ERROR,   SEPARATOR,   ERROR},
+	/*SEPARATOR*/	 {IDLE,          NAME,     INT,    STRING,     OPERATOR,   SEPARATOR,   ERROR},
 
 	/*ERROR*/        { }
 };
@@ -60,6 +63,8 @@ private:
 	char file_buffer_[200];	//Current line in (^) file
 	char *current_symbol_;	//Current symbol in (^) line
 
+	bool eof_;
+
 	int line_number_;
 	int column_number_;
 
@@ -79,41 +84,62 @@ private:
 	void idleToIdle();
 	void idleToName();
 	void idleToInt();
+	void idleToString();
 	void idleToOperator();
 	void idleToSeparator();
+	void idleToError();
 
 	//NAME state
 	void nameToIdle();
 	void nameToName();
-	void nameToOperator();
 	/*void nameToInt(); No cases*/
+	void nameToString();	//Error state
+	void nameToOperator();
 	void nameToSeparator();
+	void nameToError();
 
 	//INT state
 	void intToIdle();
 	void intToName();	//Error state
 	void intToInt();
+	void intToString();	//Error state
 	void intToOperator();
 	void intToSeparator();
+	void intToError();
 
 	//FLOAT state
 	void floatToIdle();
 	void floatToName();
 	void floatToFloat();
+	void floatToString();
 	void floatToOperator();
 	void floatToSeparator();
+	void floatToError();
+
+	//STRING state
+	void stringToIdle();
+	void stringToName();
+	void stringToInt();
+	void stringToString();
+	void stringToOperator();
+	void stringToSeparator();
+	void stringToError();
 
 	//OPERATOR state
 	void operatorToIdle();
 	void operatorToName();
 	void operatorToInt();
+	void operatorToString();
 	void operatorToOperator();
 	void operatorToSeparator();
+	void operatorToError();
 
 	//SEPARATOR state
 	void separatorToIdle();
 	void separatorToName();
 	void separatorToInt();
+	void separatorToString();
 	void separatorToOperator();
 	void separatorToSeparator();
+	void separatorToError();
 };

@@ -8,6 +8,8 @@ using namespace std;
 //Project includes
 #include "lexer.h"
 
+//TODO << >> comments
+
 int main(int argc, char* argv[])
 {
 	string filename;
