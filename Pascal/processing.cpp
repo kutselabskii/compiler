@@ -25,13 +25,21 @@ void Lexer::pushAndStep_()
 
 void Lexer::print_(string type)
 {
-	cout.width(8);
+	cout.width(6);
 	cout << line_number_;
-	cout.width(8);
+	cout.width(6);
 	cout << column_number_;
-	cout.width(40);
-	cout << type;
-	cout.width(40);
+	cout.width(30);
+	if (type == "NAME" && keywords.find(token_) != keywords.end())
+		cout << "KEYWORD";
+	else
+		cout << type;
+	string h;
+	for (int i = 0; i < token_.length(); i++)
+		h.push_back(tolower((unsigned char)token_[i]));
+	cout.width(35);
+	cout << h;
+	cout.width(35);
 	cout << token_.c_str() << endl;
 
 	token_.clear();
@@ -39,13 +47,15 @@ void Lexer::print_(string type)
 
 void Lexer::printTable_()
 {
-	cout.width(8);
+	cout.width(6);
 	cout << "Line";
-	cout.width(8);
+	cout.width(6);
 	cout << "Col";
-	cout.width(40);
+	cout.width(30);
 	cout << "Type";
-	cout.width(40);
+	cout.width(35);
+	cout << "Value";
+	cout.width(35);
 	cout << "Code representation" << endl;
 }
 

@@ -5,6 +5,7 @@
 #include <fstream>
 #include <ctype.h>
 #include <string>
+#include <set>
 
 enum States	//State codes
 {
@@ -28,6 +29,14 @@ enum Codes	//Symbol codes
 	SEP_SIGN,
 	QUOTE,
 	UNKNOWN
+};
+
+const std::set <std::string> keywords = 
+{	"and", "array", "asm", "begin", "break", "case", "const", "constructor", "continue", "destructor", 
+	"div", "do", "downto", "else", "end", "false", "file", "for", "function", "goto", "if", "implementation", 
+	"in", "inline", "interface", "label", "mod", "nil", "not", "object", "of", "on", "operator", "or", "packed",
+	"procedure", "program", "record", "repeat", "set", "shl", "shr", "string", "then", "to", "true", "type",
+	"unit", "until", "uses", "var", "while", "with", "xor"
 };
 
 const States fsm[100][100] = 
