@@ -16,7 +16,8 @@ enum States	//State codes
 	STRING,
 	OPERATOR,
 	SEPARATOR,
-	ERROR
+	ERROR,
+	COMMENT
 };
 
 
@@ -28,7 +29,8 @@ enum Codes	//Symbol codes
 	OP_SIGN,
 	SEP_SIGN,
 	QUOTE,
-	UNKNOWN
+	UNKNOWN,
+	COM_SIGN
 };
 
 const std::set <std::string> keywords = 
@@ -42,12 +44,12 @@ const std::set <std::string> keywords =
 const States fsm[100][100] = 
 {
 			       //Symbol
-	//State          space + \n,   letter,   digit,    quote,      operator,    separator   unknown
-	/*IDLE*/         {IDLE,          NAME,     INT,    STRING,     OPERATOR,   SEPARATOR,   ERROR},
-	/*NAME*/         {IDLE,          NAME,    NAME,     ERROR,     OPERATOR,   SEPARATOR,   ERROR},
-	/*INT*/          {IDLE,         ERROR,     INT,     ERROR,     OPERATOR,       ERROR,   ERROR},
-	/*FLOAT*/        {IDLE,         ERROR,   FLOAT,     ERROR,     OPERATOR,       ERROR,   ERROR},
-	/*STRING*/       {STRING,      STRING,  STRING,      IDLE,       STRING,      STRING,  STRING},
+	//State          space + \n,   letter,   digit,    quote,      operator,    separator   unknown   comment
+	/*IDLE*/         {IDLE,          NAME,     INT,    STRING,     OPERATOR,   SEPARATOR,   ERROR,    COMMENT},
+	/*NAME*/         {IDLE,          NAME,    NAME,     ERROR,     OPERATOR,   SEPARATOR,   ERROR,    COMMENT},
+	/*INT*/          {IDLE,         ERROR,     INT,     ERROR,     OPERATOR,       ERROR,   ERROR,    COMMENT},
+	/*FLOAT*/        {IDLE,         ERROR,   FLOAT,     ERROR,     OPERATOR,       ERROR,   ERROR,    COMMENT},
+	/*STRING*/       {STRING,      STRING,  STRING,      IDLE,       STRING,      STRING,  STRING,     STRING},
 	/*OPERATOR*/     {IDLE,          NAME,     INT,    STRING,        ERROR,   SEPARATOR,   ERROR},
 	/*SEPARATOR*/	 {IDLE,          NAME,     INT,    STRING,     OPERATOR,   SEPARATOR,   ERROR},
 
@@ -97,6 +99,7 @@ private:
 	void idleToOperator();
 	void idleToSeparator();
 	void idleToError();
+	void idleToComment();
 
 	//NAME state
 	void nameToIdle();
@@ -106,6 +109,7 @@ private:
 	void nameToOperator();
 	void nameToSeparator();
 	void nameToError();
+	void nameToComment();
 
 	//INT state
 	void intToIdle();
@@ -115,6 +119,7 @@ private:
 	void intToOperator();
 	void intToSeparator();
 	void intToError();
+	void intToComment();
 
 	//FLOAT state
 	void floatToIdle();
@@ -124,6 +129,7 @@ private:
 	void floatToOperator();
 	void floatToSeparator();
 	void floatToError();
+	void floatToComment();
 
 	//STRING state
 	void stringToIdle();
@@ -133,6 +139,7 @@ private:
 	void stringToOperator();
 	void stringToSeparator();
 	void stringToError();
+	void stringToComment();
 
 	//OPERATOR state
 	void operatorToIdle();
@@ -142,6 +149,7 @@ private:
 	void operatorToOperator();
 	void operatorToSeparator();
 	void operatorToError();
+	void operatorToComment();
 
 	//SEPARATOR state
 	void separatorToIdle();
@@ -151,4 +159,5 @@ private:
 	void separatorToOperator();
 	void separatorToSeparator();
 	void separatorToError();
+	void separatorToComment();
 };

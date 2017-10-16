@@ -23,6 +23,7 @@ Lexer::Lexer()
 	action_[IDLE][OP_SIGN] = &Lexer::idleToOperator;
 	action_[IDLE][SEP_SIGN] = &Lexer::idleToSeparator;
 	action_[IDLE][UNKNOWN] = &Lexer::idleToError;
+	action_[IDLE][COM_SIGN] = &Lexer::idleToComment;
 
 	//NAME state
 	action_[NAME][SPACE] = &Lexer::nameToIdle;
@@ -32,6 +33,7 @@ Lexer::Lexer()
 	action_[NAME][OP_SIGN] = &Lexer::nameToOperator;
 	action_[NAME][SEP_SIGN] = &Lexer::nameToSeparator;
 	action_[NAME][UNKNOWN] = &Lexer::nameToError;
+	action_[NAME][COM_SIGN] = &Lexer::nameToComment;
 
 	//INT state
 	action_[INT][SPACE] = &Lexer::intToIdle;
@@ -41,6 +43,7 @@ Lexer::Lexer()
 	action_[INT][OP_SIGN] = &Lexer::intToOperator;
 	action_[INT][SEP_SIGN] = &Lexer::intToSeparator;
 	action_[INT][UNKNOWN] = &Lexer::intToError;
+	action_[INT][COM_SIGN] = &Lexer::intToComment;
 
 	//FLOAT state
 	action_[FLOAT][SPACE] = &Lexer::floatToIdle;
@@ -50,6 +53,7 @@ Lexer::Lexer()
 	action_[FLOAT][OP_SIGN] = &Lexer::floatToOperator;
 	action_[FLOAT][SEP_SIGN] = &Lexer::floatToSeparator;
 	action_[FLOAT][UNKNOWN] = &Lexer::floatToError;
+	action_[FLOAT][COM_SIGN] = &Lexer::floatToComment;
 
 	//STRING state
 	action_[STRING][SPACE] = &Lexer::stringToIdle;
@@ -59,6 +63,7 @@ Lexer::Lexer()
 	action_[STRING][OP_SIGN] = &Lexer::stringToOperator;
 	action_[STRING][SEP_SIGN] = &Lexer::stringToSeparator;
 	action_[STRING][UNKNOWN] = &Lexer::stringToError;
+	action_[STRING][COM_SIGN] = &Lexer::stringToComment;
 
 	//OPERATOR state
 	action_[OPERATOR][SPACE] = &Lexer::operatorToIdle;
@@ -68,6 +73,7 @@ Lexer::Lexer()
 	action_[OPERATOR][OP_SIGN] = &Lexer::operatorToOperator;
 	action_[OPERATOR][SEP_SIGN] = &Lexer::operatorToSeparator;
 	action_[OPERATOR][UNKNOWN] = &Lexer::operatorToError;
+	action_[OPERATOR][COM_SIGN] = &Lexer::operatorToComment;
 
 	//SEPARATOR state
 	action_[SEPARATOR][IDLE] = &Lexer::separatorToIdle;
@@ -77,6 +83,7 @@ Lexer::Lexer()
 	action_[SEPARATOR][OP_SIGN] = &Lexer::separatorToOperator;
 	action_[SEPARATOR][SEP_SIGN] = &Lexer::separatorToSeparator;
 	action_[SEPARATOR][UNKNOWN] = &Lexer::separatorToError;
+	action_[SEPARATOR][COM_SIGN] = &Lexer::separatorToComment;
 }
 
 Lexer::~Lexer()
@@ -151,6 +158,9 @@ Codes Lexer::charIdentify_(char symbol)
 	//[']
 	if (symbol == '\'')
 		return QUOTE;
+
+	if (symbol == '{')
+		return COM_SIGN;
 
 	return UNKNOWN;
 }

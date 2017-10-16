@@ -109,6 +109,14 @@ void Lexer::idleToError()
 	print_("ERROR: Unexp. symbol");
 }
 
+void Lexer::idleToComment()
+{
+	while (*current_symbol_ != '}' && !eof_)
+		pushAndStep_();
+	pushAndStep_();
+	token_.clear();
+}
+
 
 //NAME state
 void Lexer::nameToIdle()
@@ -152,6 +160,16 @@ void Lexer::nameToError()
 		pushAndStep_();
 	state_ = IDLE;
 	print_("ERROR: Unexp. symbol");
+}
+
+void Lexer::nameToComment()
+{
+	print_("NAME");
+	while (*current_symbol_ != '}' && !eof_)
+		pushAndStep_();
+	pushAndStep_();
+	token_.clear();
+	state_ = IDLE;
 }
 
 
@@ -235,6 +253,16 @@ void Lexer::intToError()
 }
 
 
+void Lexer::intToComment()
+{
+	print_("INT");
+	while (*current_symbol_ != '}' && !eof_)
+		pushAndStep_();
+	pushAndStep_();
+	token_.clear();
+	state_ = IDLE;
+}
+
 //FLOAT state
 void Lexer::floatToIdle()
 {
@@ -298,6 +326,16 @@ void Lexer::floatToError()
 	print_("ERROR: Unexp. symbol");
 }
 
+void Lexer::floatToComment()
+{
+	print_("FLOAT");
+	while (*current_symbol_ != '}' && !eof_)
+		pushAndStep_();
+	pushAndStep_();
+	token_.clear();
+	state_ = IDLE;
+}
+
 
 //STRING state
 void Lexer::stringToIdle()
@@ -343,6 +381,11 @@ void Lexer::stringToError()
 	pushAndStep_();
 }
 
+void Lexer::stringToComment()
+{
+	pushAndStep_();
+}
+
 //OPERATOR state
 void Lexer::operatorToIdle()
 {
@@ -373,9 +416,21 @@ void Lexer::operatorToString()
 
 void Lexer::operatorToOperator()
 {
-	if (token_.length() == 2)
-		print_("OPERATOR");
-	pushAndStep_();
+	if (token_ == "/" && *current_symbol_ == '/')
+	{
+		while (*current_symbol_ != '\0' && *current_symbol_ != '\n' && !eof_)
+			pushAndStep_();
+		pushAndStep_();
+		token_.clear();
+		state_ = IDLE;
+	}
+	else
+	{
+		if (token_.length() == 2)
+			if (token_ != "<<" && token_ != ">>")
+				print_("OPERATOR");
+		pushAndStep_();
+	}
 }
 
 void Lexer::operatorToSeparator()	
@@ -392,6 +447,16 @@ void Lexer::operatorToError()
 		pushAndStep_();
 	state_ = IDLE;
 	print_("ERROR: Unexp. symbol");
+}
+
+void Lexer::operatorToComment()
+{
+	print_("OPERATOR");
+	while (*current_symbol_ != '}' && !eof_)
+		pushAndStep_();
+	pushAndStep_();
+	token_.clear();
+	state_ = IDLE;
 }
 
 
@@ -432,6 +497,15 @@ void Lexer::separatorToOperator()
 		pushAndStep_();
 		print_("OPERATOR");
 	}
+	else if (token_ == "(" && *current_symbol_ == '*')
+	{
+		while (!(*current_symbol_ == '*' && *(current_symbol_+1) == ')') && !eof_)
+			pushAndStep_();
+		pushAndStep_();
+		pushAndStep_();
+		token_.clear();
+		state_ = IDLE;
+	}
 	else
 	{
 		state_ = OPERATOR;
@@ -454,4 +528,14 @@ void Lexer::separatorToError()
 		pushAndStep_();
 	state_ = IDLE;
 	print_("ERROR: Unexp. symbol");
+}
+
+void Lexer::separatorToComment()
+{
+	print_("SEPARATOR");
+	while (*current_symbol_ != '}' && !eof_)
+		pushAndStep_();
+	pushAndStep_();
+	token_.clear();
+	state_ = IDLE;
 }
