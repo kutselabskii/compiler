@@ -17,7 +17,8 @@ enum States	//State codes
 	OPERATOR,
 	SEPARATOR,
 	ERROR,
-	COMMENT
+	COMMENT, 
+	KEYWORD
 };
 
 
@@ -41,6 +42,7 @@ const std::set <std::string> keywords =
 	"unit", "until", "uses", "var", "while", "with", "xor"
 };
 
+//TODO make this table useful
 const States fsm[100][100] = 
 {
 			       //Symbol
@@ -50,13 +52,18 @@ const States fsm[100][100] =
 	/*INT*/          {IDLE,         ERROR,     INT,     ERROR,     OPERATOR,       ERROR,   ERROR,    COMMENT},
 	/*FLOAT*/        {IDLE,         ERROR,   FLOAT,     ERROR,     OPERATOR,       ERROR,   ERROR,    COMMENT},
 	/*STRING*/       {STRING,      STRING,  STRING,      IDLE,       STRING,      STRING,  STRING,     STRING},
-	/*OPERATOR*/     {IDLE,          NAME,     INT,    STRING,        ERROR,   SEPARATOR,   ERROR},
-	/*SEPARATOR*/	 {IDLE,          NAME,     INT,    STRING,     OPERATOR,   SEPARATOR,   ERROR},
+	/*OPERATOR*/     {IDLE,          NAME,     INT,    STRING,        ERROR,   SEPARATOR,   ERROR,    COMMENT},
+	/*SEPARATOR*/	 {IDLE,          NAME,     INT,    STRING,     OPERATOR,   SEPARATOR,   ERROR,    COMMENT},
 
 	/*ERROR*/        { }
 };
 
 typedef void (*FuncType)();
+
+struct Token
+{
+	std::string token, type;
+};
 
 class Lexer
 {
@@ -65,7 +72,7 @@ public:
 	~Lexer();
 
 	bool fileAssign(std::string filename);	//Assign a file to lexer (logs)
-	bool parse();						//Parse assigned file (logs)
+	Token next();						//Parse assigned file (logs)
 
 private:
 	void (Lexer::*action_[100][100])();	//Array of function pointers (logs sometimes)
@@ -81,6 +88,8 @@ private:
 
 	States state_;				//Current state of a system
 	std::string token_;		//Current token
+	Token return_value;
+	bool return_flag;
 
 	Codes charIdentify_(char symbol); //Type of current_symbol_
 

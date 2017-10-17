@@ -10,6 +10,7 @@ Lexer::Lexer()
 	token_.clear();
 	line_number_ = 1;
 	column_number_ = 0;
+	return_flag = false;
 
 	printTable_();
 
@@ -98,21 +99,10 @@ bool Lexer::fileAssign(string filename)
 
 	if (!file_.is_open())	//Check if file is opened
 	{
-		cout << "FileError:: Can't open file";
-		return false;
-	}
-		return true;
-}
-
-bool Lexer::parse()
-{
-	if (!file_.is_open())	//Check if we have something to work with
-	{
-		cout << "FileError: Can't parse - no file assigned";
+		cout << "FileError:: Can't open file" << endl;
 		return false;
 	}
 
-	Codes sym_type;
 	if (current_symbol_ == nullptr || *current_symbol_ == '\n' || *current_symbol_ == '\0')
 	{
 		if (file_.eof())
@@ -121,16 +111,35 @@ bool Lexer::parse()
 			file_.getline(file_buffer_, sizeof(char) * 200);
 		current_symbol_ = file_buffer_;
 	}
-
-	while (!eof_)	//Main parsing cycle
-	{
-		//Identify current symbol
-		sym_type = charIdentify_(*current_symbol_);
-
-		//Act respectively
-		(this->*action_[state_][sym_type])();
-	}
 	return true;
+}
+
+Token Lexer::next()
+{
+	Codes sym_type;
+
+
+	while (!return_flag)
+	{
+		if (!eof_)	//Main parsing cycle
+		{
+			//Identify current symbol
+			sym_type = charIdentify_(*current_symbol_);
+
+			//Act respectively
+			(this->*action_[state_][sym_type])();
+		}
+		else
+		{
+			Token t;
+			t.type = "eof";
+			return t;
+		}
+	}
+
+	return_flag = false;
+	return return_value;
+
 }
 
 Codes Lexer::charIdentify_(char symbol)

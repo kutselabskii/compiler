@@ -34,15 +34,32 @@ void Lexer::print_(string type)
 		cout << "KEYWORD";
 	else
 		cout << type;
-	string h;
+	string h, buf;
 	for (int i = 0; i < token_.length(); i++)
-		h.push_back(tolower((unsigned char)token_[i]));
+	{
+		/*if (token_[i] == '#' && isdigit(token_[i+1]))
+		{
+			i++;
+			while (isdigit(token_[i]))
+			{
+				buf.push_back(token_[i]);
+				i++;
+			}
+			h.push_back((char)stoi(buf));
+			buf.clear();
+		}
+		else*/
+			h.push_back(tolower((unsigned char)token_[i]));
+	}
 	cout.width(35);
 	cout << h;
 	cout.width(35);
 	cout << token_.c_str() << endl;
-
 	token_.clear();
+
+	return_value.token = h;
+	return_value.type = type;
+	return_flag = true;
 }
 
 void Lexer::printTable_()
@@ -103,10 +120,18 @@ void Lexer::idleToSeparator()
 
 void Lexer::idleToError()
 {
-	while (charIdentify_(*current_symbol_) == UNKNOWN)
+	if (*current_symbol_ == '#')
+	{
+		state_ = INT;
 		pushAndStep_();
-	state_ = IDLE;
-	print_("ERROR: Unexp. symbol");
+	}
+	else
+	{
+		while (charIdentify_(*current_symbol_) == UNKNOWN)
+			pushAndStep_();
+		state_ = IDLE;
+		print_("ERROR: Unexp. symbol");
+	}
 }
 
 void Lexer::idleToComment()

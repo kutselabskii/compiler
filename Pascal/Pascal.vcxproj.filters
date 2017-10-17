@@ -37,8 +37,5 @@
     <Text Include="codestyle.txt">
       <Filter>Resource Files</Filter>
     </Text>
-    <Text Include="table_funcs.txt">
-      <Filter>Resource Files</Filter>
-    </Text>
   </ItemGroup>
 </Project>
