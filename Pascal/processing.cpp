@@ -3,66 +3,56 @@
 using namespace std;
 
 //Utility functions for the processing functions
-void Lexer::pushAndStep_()
+void Lexer::_pushAndStep()
 {
-	if (current_symbol_ == nullptr || *current_symbol_ == '\n' || *current_symbol_ == '\0')
+	if (_current_symbol == nullptr || *_current_symbol == '\n' || *_current_symbol == '\0')
 	{
-		if (file_.eof())
+		if (_file.eof())
 			eof_ = true;
 		else
-			file_.getline(file_buffer_, sizeof(char) * 200);
-		current_symbol_ = file_buffer_;
-		line_number_++;
-		column_number_ = 0;
+			_file.getline(file_buffer_, sizeof(char) * 200);
+		_current_symbol = file_buffer_;
+		_line_number++;
+		_column_number = 0;
 	}
 	else
 	{
-		token_.push_back(*current_symbol_);
-		current_symbol_++;
-		column_number_++;
+		_token.push_back(*_current_symbol);
+		_current_symbol++;
+		_column_number++;
 	}
 }
 
-void Lexer::print_(string type)
+void Lexer::_print(string type)
 {
-	cout.width(6);
-	cout << line_number_;
-	cout.width(6);
-	cout << column_number_;
-	cout.width(30);
-	if (type == "NAME" && keywords.find(token_) != keywords.end())
-		cout << "KEYWORD";
-	else
-		cout << type;
 	string h, buf;
-	for (int i = 0; i < token_.length(); i++)
+	for (int i = 0; i < _token.length(); i++)
+		h.push_back(tolower((unsigned char)_token[i]));
+
+	if (type == "NAME" && keywords.find(_token) != keywords.end())
+		type = "KEYWORD";
+
+	if (_mode == "lex")
 	{
-		/*if (token_[i] == '#' && isdigit(token_[i+1]))
-		{
-			i++;
-			while (isdigit(token_[i]))
-			{
-				buf.push_back(token_[i]);
-				i++;
-			}
-			h.push_back((char)stoi(buf));
-			buf.clear();
-		}
-		else*/
-			h.push_back(tolower((unsigned char)token_[i]));
+		cout.width(6);
+		cout << _line_number;
+		cout.width(6);
+		cout << _column_number;
+		cout.width(30);
+		cout << type;
+		cout.width(35);
+		cout << h;
+		cout.width(35);
+		cout << _token.c_str() << endl;
 	}
-	cout.width(35);
-	cout << h;
-	cout.width(35);
-	cout << token_.c_str() << endl;
-	token_.clear();
+	_token.clear();
 
 	return_value.token = h;
 	return_value.type = type;
 	return_flag = true;
 }
 
-void Lexer::printTable_()
+void Lexer::_printTable()
 {
 	cout.width(6);
 	cout << "Line";
@@ -80,487 +70,487 @@ void Lexer::printTable_()
 //IDLE state
 void Lexer::idleToIdle()
 {
-	pushAndStep_();
+	_pushAndStep();
 }
 
 void Lexer::idleToName()
 {
-	state_ = NAME;
-	token_.clear();
-	pushAndStep_();
+	_state = NAME;
+	_token.clear();
+	_pushAndStep();
 }
 
 void Lexer::idleToInt()
 {
-	state_ = INT;
-	token_.clear();
-	pushAndStep_();
+	_state = INT;
+	_token.clear();
+	_pushAndStep();
 }
 
 void Lexer::idleToString()
 {
-	state_ = STRING;
-	token_.clear();
-	pushAndStep_();
+	_state = STRING;
+	_token.clear();
+	_pushAndStep();
 }
 
 void Lexer::idleToOperator()
 {
-	state_ = OPERATOR;
-	token_.clear();
-	pushAndStep_();
+	_state = OPERATOR;
+	_token.clear();
+	_pushAndStep();
 }
 
 void Lexer::idleToSeparator()
 {
-	state_ = SEPARATOR;
-	token_.clear();
-	pushAndStep_();
+	_state = SEPARATOR;
+	_token.clear();
+	_pushAndStep();
 }
 
 void Lexer::idleToError()
 {
-	if (*current_symbol_ == '#')
+	if (*_current_symbol == '#')
 	{
-		state_ = INT;
-		pushAndStep_();
+		_state = INT;
+		_pushAndStep();
 	}
 	else
 	{
-		while (charIdentify_(*current_symbol_) == UNKNOWN)
-			pushAndStep_();
-		state_ = IDLE;
-		print_("ERROR: Unexp. symbol");
+		while (_charIdentify(*_current_symbol) == UNKNOWN)
+			_pushAndStep();
+		_state = IDLE;
+		_print("ERROR: Unexp. symbol");
 	}
 }
 
 void Lexer::idleToComment()
 {
-	while (*current_symbol_ != '}' && !eof_)
-		pushAndStep_();
-	pushAndStep_();
-	token_.clear();
+	while (*_current_symbol != '}' && !eof_)
+		_pushAndStep();
+	_pushAndStep();
+	_token.clear();
 }
 
 
 //NAME state
 void Lexer::nameToIdle()
 {
-	state_ = IDLE;
-	print_("NAME");
+	_state = IDLE;
+	_print("NAME");
 }
 
 void Lexer::nameToName()
 {
-	pushAndStep_();
+	_pushAndStep();
 }
 
 void Lexer::nameToString()
 {
-	while (charIdentify_(*current_symbol_) == LETTER || charIdentify_(*current_symbol_) == QUOTE)
-		pushAndStep_();
+	while (_charIdentify(*_current_symbol) == LETTER || _charIdentify(*_current_symbol) == QUOTE)
+		_pushAndStep();
 
-	state_ = IDLE;
-	print_("ERROR: Unexp. sym. in NAME token");
+	_state = IDLE;
+	_print("ERROR: Unexp. sym. in NAME token");
 }
 
 void Lexer::nameToOperator()
 {
-	state_ = OPERATOR;
-	print_("NAME");
-	pushAndStep_();
+	_state = OPERATOR;
+	_print("NAME");
+	_pushAndStep();
 }
 
 void Lexer::nameToSeparator()
 {
-	state_ = SEPARATOR;
-	print_("NAME");
-	pushAndStep_();
+	_state = SEPARATOR;
+	_print("NAME");
+	_pushAndStep();
 }
 
 void Lexer::nameToError()
 {
-	print_("NAME");
-	while (charIdentify_(*current_symbol_) == UNKNOWN)
-		pushAndStep_();
-	state_ = IDLE;
-	print_("ERROR: Unexp. symbol");
+	_print("NAME");
+	while (_charIdentify(*_current_symbol) == UNKNOWN)
+		_pushAndStep();
+	_state = IDLE;
+	_print("ERROR: Unexp. symbol");
 }
 
 void Lexer::nameToComment()
 {
-	print_("NAME");
-	while (*current_symbol_ != '}' && !eof_)
-		pushAndStep_();
-	pushAndStep_();
-	token_.clear();
-	state_ = IDLE;
+	_print("NAME");
+	while (*_current_symbol != '}' && !eof_)
+		_pushAndStep();
+	_pushAndStep();
+	_token.clear();
+	_state = IDLE;
 }
 
 
 //INT state
 void Lexer::intToIdle()
 {
-	state_ = IDLE;
-	print_("INT");
+	_state = IDLE;
+	_print("INT");
 }
 
 void Lexer::intToName()
 {
-	if (*current_symbol_ == 'e')
+	if (*_current_symbol == 'e')
 	{
-		state_ = FLOAT;
-		pushAndStep_();
+		_state = FLOAT;
+		_pushAndStep();
 	}
 	else
 	{
-		state_ = IDLE;
+		_state = IDLE;
 
-		while (charIdentify_(*current_symbol_) == LETTER)
-			pushAndStep_();
-		print_("ERROR: Unexp. sym. in INT token");
+		while (_charIdentify(*_current_symbol) == LETTER)
+			_pushAndStep();
+		_print("ERROR: Unexp. sym. in INT token");
 	}
 }
 
 void Lexer::intToInt()
 {
-	pushAndStep_();
+	_pushAndStep();
 }
 
 void Lexer::intToString()
 {
-	while (charIdentify_(*current_symbol_) == DIGIT || charIdentify_(*current_symbol_) == QUOTE)
-		pushAndStep_();
+	while (_charIdentify(*_current_symbol) == DIGIT || _charIdentify(*_current_symbol) == QUOTE)
+		_pushAndStep();
 
-	state_ = IDLE;
-	print_("ERROR: Unexp. sym. in INT token");
+	_state = IDLE;
+	_print("ERROR: Unexp. sym. in INT token");
 }
 
 void Lexer::intToOperator()
 {
-	if (*current_symbol_ == '.')
+	if (*_current_symbol == '.')
 	{
-		if (*(current_symbol_ + 1) == '.')
+		if (*(_current_symbol + 1) == '.')
 		{
-			state_ = OPERATOR;
-			print_("INT");
-			pushAndStep_();
+			_state = OPERATOR;
+			_print("INT");
+			_pushAndStep();
 		}
 		else
 		{
-			state_ = FLOAT;
-			pushAndStep_();
+			_state = FLOAT;
+			_pushAndStep();
 		}
 	}
 	else
 	{
 
-		state_ = OPERATOR;
-		print_("INT");
-		pushAndStep_();
+		_state = OPERATOR;
+		_print("INT");
+		_pushAndStep();
 	}
 }
 
 void Lexer::intToSeparator()
 {
-	state_ = SEPARATOR;
-	print_("INT");
-	pushAndStep_();
+	_state = SEPARATOR;
+	_print("INT");
+	_pushAndStep();
 }
 
 void Lexer::intToError()
 {
-	print_("INT");
-	while (charIdentify_(*current_symbol_) == UNKNOWN)
-		pushAndStep_();
-	state_ = IDLE;
-	print_("ERROR: Unexp. symbol");
+	_print("INT");
+	while (_charIdentify(*_current_symbol) == UNKNOWN)
+		_pushAndStep();
+	_state = IDLE;
+	_print("ERROR: Unexp. symbol");
 }
 
 
 void Lexer::intToComment()
 {
-	print_("INT");
-	while (*current_symbol_ != '}' && !eof_)
-		pushAndStep_();
-	pushAndStep_();
-	token_.clear();
-	state_ = IDLE;
+	_print("INT");
+	while (*_current_symbol != '}' && !eof_)
+		_pushAndStep();
+	_pushAndStep();
+	_token.clear();
+	_state = IDLE;
 }
 
 //FLOAT state
 void Lexer::floatToIdle()
 {
-	if (charIdentify_(token_.back()) != DIGIT)
+	if (_charIdentify(_token.back()) != DIGIT)
 	{
-		state_ = IDLE;
-		print_("ERROR: Unexp. end of a FLOAT token");
-		pushAndStep_();
+		_state = IDLE;
+		_print("ERROR: Unexp. end of a FLOAT token");
+		_pushAndStep();
 	}
 	else
 	{
-		state_ = IDLE;
-		print_("FLOAT");
-		pushAndStep_();
+		_state = IDLE;
+		_print("FLOAT");
+		_pushAndStep();
 	}
 }
 
 void Lexer::floatToName()
 {
-	state_ = IDLE;
+	_state = IDLE;
 
-	while (charIdentify_(*current_symbol_) == LETTER)
-		pushAndStep_();
-	print_("ERROR: Unexp. sym. in FLOAT token");
+	while (_charIdentify(*_current_symbol) == LETTER)
+		_pushAndStep();
+	_print("ERROR: Unexp. sym. in FLOAT token");
 }
 
 void Lexer::floatToFloat()
 {
-	pushAndStep_();
+	_pushAndStep();
 }
 
 void Lexer::floatToString()
 {
-	while (charIdentify_(*current_symbol_) == DIGIT || charIdentify_(*current_symbol_) == QUOTE)
-		pushAndStep_();
+	while (_charIdentify(*_current_symbol) == DIGIT || _charIdentify(*_current_symbol) == QUOTE)
+		_pushAndStep();
 
-	state_ = IDLE;
-	print_("ERROR: Unexp. sym. in FLOAT token");
+	_state = IDLE;
+	_print("ERROR: Unexp. sym. in FLOAT token");
 }
 
 void Lexer::floatToOperator()
 {
-	state_ = OPERATOR;
-	print_("FLOAT");
-	pushAndStep_();
+	_state = OPERATOR;
+	_print("FLOAT");
+	_pushAndStep();
 }
 
 void Lexer::floatToSeparator()
 {
-	state_ = SEPARATOR;
-	print_("FLOAT");
-	pushAndStep_();
+	_state = SEPARATOR;
+	_print("FLOAT");
+	_pushAndStep();
 }
 
 void Lexer::floatToError()
 {
-	print_("FLOAT");
-	while (charIdentify_(*current_symbol_) == UNKNOWN)
-		pushAndStep_();
-	state_ = IDLE;
-	print_("ERROR: Unexp. symbol");
+	_print("FLOAT");
+	while (_charIdentify(*_current_symbol) == UNKNOWN)
+		_pushAndStep();
+	_state = IDLE;
+	_print("ERROR: Unexp. symbol");
 }
 
 void Lexer::floatToComment()
 {
-	print_("FLOAT");
-	while (*current_symbol_ != '}' && !eof_)
-		pushAndStep_();
-	pushAndStep_();
-	token_.clear();
-	state_ = IDLE;
+	_print("FLOAT");
+	while (*_current_symbol != '}' && !eof_)
+		_pushAndStep();
+	_pushAndStep();
+	_token.clear();
+	_state = IDLE;
 }
 
 
 //STRING state
 void Lexer::stringToIdle()
 {
-	if (*current_symbol_ == ' ' || *current_symbol_ == '\t')
-		pushAndStep_();
+	if (*_current_symbol == ' ' || *_current_symbol == '\t')
+		_pushAndStep();
 	else
 	{
-		print_("ERROR: Unexp. line end. in STRING token");
-		state_ = IDLE;
+		_print("ERROR: Unexp. line end. in STRING token");
+		_state = IDLE;
 	}
 }
 
 void Lexer::stringToName()
 {
-	pushAndStep_();
+	_pushAndStep();
 }
 
 void Lexer::stringToInt()
 {
-	pushAndStep_();
+	_pushAndStep();
 }
 
 void Lexer::stringToString()
 {
-	state_ = IDLE;
-	pushAndStep_();
-	print_("STRING");
+	_state = IDLE;
+	_pushAndStep();
+	_print("STRING");
 }
 
 void Lexer::stringToOperator()
 {
-	pushAndStep_();
+	_pushAndStep();
 }
 
 void Lexer::stringToSeparator()
 {
-	pushAndStep_();
+	_pushAndStep();
 }
 
 void Lexer::stringToError()
 {
-	pushAndStep_();
+	_pushAndStep();
 }
 
 void Lexer::stringToComment()
 {
-	pushAndStep_();
+	_pushAndStep();
 }
 
 //OPERATOR state
 void Lexer::operatorToIdle()
 {
-	state_ = IDLE;
-	print_("OPERATOR");
+	_state = IDLE;
+	_print("OPERATOR");
 }
 
 void Lexer::operatorToName()
 {
-	state_ = NAME;
-	print_("OPERATOR");
-	pushAndStep_();
+	_state = NAME;
+	_print("OPERATOR");
+	_pushAndStep();
 }
 
 void Lexer::operatorToInt()
 {
-	state_ = INT;
-	print_("OPERATOR");
-	pushAndStep_();
+	_state = INT;
+	_print("OPERATOR");
+	_pushAndStep();
 }
 
 void Lexer::operatorToString()
 {
-	state_ = STRING;
-	print_("OPERATOR");
-	pushAndStep_();
+	_state = STRING;
+	_print("OPERATOR");
+	_pushAndStep();
 }
 
 void Lexer::operatorToOperator()
 {
-	if (token_ == "/" && *current_symbol_ == '/')
+	if (_token == "/" && *_current_symbol == '/')
 	{
-		while (*current_symbol_ != '\0' && *current_symbol_ != '\n' && !eof_)
-			pushAndStep_();
-		pushAndStep_();
-		token_.clear();
-		state_ = IDLE;
+		while (*_current_symbol != '\0' && *_current_symbol != '\n' && !eof_)
+			_pushAndStep();
+		_pushAndStep();
+		_token.clear();
+		_state = IDLE;
 	}
 	else
 	{
-		if (token_.length() == 2)
-			if (token_ != "<<" && token_ != ">>")
-				print_("OPERATOR");
-		pushAndStep_();
+		if (_token.length() == 2)
+			if (_token != "<<" && _token != ">>")
+				_print("OPERATOR");
+		_pushAndStep();
 	}
 }
 
 void Lexer::operatorToSeparator()	
 {
-	state_ = SEPARATOR;
-	print_("OPERATOR");
-	pushAndStep_();
+	_state = SEPARATOR;
+	_print("OPERATOR");
+	_pushAndStep();
 }
 
 void Lexer::operatorToError()
 {
-	print_("OPERATOR");
-	while (charIdentify_(*current_symbol_) == UNKNOWN)
-		pushAndStep_();
-	state_ = IDLE;
-	print_("ERROR: Unexp. symbol");
+	_print("OPERATOR");
+	while (_charIdentify(*_current_symbol) == UNKNOWN)
+		_pushAndStep();
+	_state = IDLE;
+	_print("ERROR: Unexp. symbol");
 }
 
 void Lexer::operatorToComment()
 {
-	print_("OPERATOR");
-	while (*current_symbol_ != '}' && !eof_)
-		pushAndStep_();
-	pushAndStep_();
-	token_.clear();
-	state_ = IDLE;
+	_print("OPERATOR");
+	while (*_current_symbol != '}' && !eof_)
+		_pushAndStep();
+	_pushAndStep();
+	_token.clear();
+	_state = IDLE;
 }
 
 
 //SEPARATOR state
 void Lexer::separatorToIdle()
 {
-	state_ = IDLE;
-	print_("SEPARATOR");
-	pushAndStep_();
+	_state = IDLE;
+	_print("SEPARATOR");
+	_pushAndStep();
 }
 
 void Lexer::separatorToName()
 {
-	state_ = NAME;
-	print_("SEPARATOR");
-	pushAndStep_();
+	_state = NAME;
+	_print("SEPARATOR");
+	_pushAndStep();
 }
 
 void Lexer::separatorToInt()
 {
-	state_ = INT;
-	print_("SEPARATOR");
-	pushAndStep_();
+	_state = INT;
+	_print("SEPARATOR");
+	_pushAndStep();
 }
 
 void Lexer::separatorToString()
 {
-	state_ = STRING;
-	print_("SEPARATOR");
-	pushAndStep_();
+	_state = STRING;
+	_print("SEPARATOR");
+	_pushAndStep();
 }
 
 void Lexer::separatorToOperator()
 {
-	if ((token_ == "(" && *current_symbol_ == '.') || (token_ == ":" && *current_symbol_ == '='))
+	if ((_token == "(" && *_current_symbol == '.') || (_token == ":" && *_current_symbol == '='))
 	{
-		state_ = IDLE;
-		pushAndStep_();
-		print_("OPERATOR");
+		_state = IDLE;
+		_pushAndStep();
+		_print("OPERATOR");
 	}
-	else if (token_ == "(" && *current_symbol_ == '*')
+	else if (_token == "(" && *_current_symbol == '*')
 	{
-		while (!(*current_symbol_ == '*' && *(current_symbol_+1) == ')') && !eof_)
-			pushAndStep_();
-		pushAndStep_();
-		pushAndStep_();
-		token_.clear();
-		state_ = IDLE;
+		while (!(*_current_symbol == '*' && *(_current_symbol+1) == ')') && !eof_)
+			_pushAndStep();
+		_pushAndStep();
+		_pushAndStep();
+		_token.clear();
+		_state = IDLE;
 	}
 	else
 	{
-		state_ = OPERATOR;
-		print_("SEPARATOR");
-		pushAndStep_();
+		_state = OPERATOR;
+		_print("SEPARATOR");
+		_pushAndStep();
 	}
 }
 
 void Lexer::separatorToSeparator()
 {
-	state_ = SEPARATOR;
-	print_("SEPARATOR");
-	pushAndStep_();
+	_state = SEPARATOR;
+	_print("SEPARATOR");
+	_pushAndStep();
 }
 
 void Lexer::separatorToError()
 {
-	print_("SEPARATOR");
-	while (charIdentify_(*current_symbol_) == UNKNOWN)
-		pushAndStep_();
-	state_ = IDLE;
-	print_("ERROR: Unexp. symbol");
+	_print("SEPARATOR");
+	while (_charIdentify(*_current_symbol) == UNKNOWN)
+		_pushAndStep();
+	_state = IDLE;
+	_print("ERROR: Unexp. symbol");
 }
 
 void Lexer::separatorToComment()
 {
-	print_("SEPARATOR");
-	while (*current_symbol_ != '}' && !eof_)
-		pushAndStep_();
-	pushAndStep_();
-	token_.clear();
-	state_ = IDLE;
+	_print("SEPARATOR");
+	while (*_current_symbol != '}' && !eof_)
+		_pushAndStep();
+	_pushAndStep();
+	_token.clear();
+	_state = IDLE;
 }

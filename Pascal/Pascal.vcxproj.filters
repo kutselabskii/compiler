@@ -16,10 +16,19 @@
     <Filter Include="Lexer">
       <UniqueIdentifier>{728eaa13-818f-4ac9-810b-653781a84c2d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Syntaxer">
+      <UniqueIdentifier>{f4ce2985-af26-4f69-a0df-f85016dbac84}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lexer.h">
       <Filter>Lexer</Filter>
+    </ClInclude>
+    <ClInclude Include="syntaxer.h">
+      <Filter>Syntaxer</Filter>
+    </ClInclude>
+    <ClInclude Include="tree_classes.h">
+      <Filter>Syntaxer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -31,6 +40,9 @@
     </ClCompile>
     <ClCompile Include="processing.cpp">
       <Filter>Lexer</Filter>
+    </ClCompile>
+    <ClCompile Include="syntaxer.cpp">
+      <Filter>Syntaxer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

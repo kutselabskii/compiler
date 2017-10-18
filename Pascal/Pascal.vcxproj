@@ -112,11 +112,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="lexer.h" />
+    <ClInclude Include="syntaxer.h" />
+    <ClInclude Include="tree_classes.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="lexer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="processing.cpp" />
+    <ClCompile Include="syntaxer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="codestyle.txt" />

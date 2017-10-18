@@ -7,31 +7,59 @@ using namespace std;
 
 //Project includes
 #include "lexer.h"
-
-//TODO read #12123123 and $123123123, transform it into real values
+#include "syntaxer.h"
 
 int main(int argc, char* argv[])
 {
-	string filename;
+	string filename, mode, pause;
 
-	if (argc == 1)	//Acquiring name of file to compile
+	switch (argc)
 	{
+	case 1:
 		cout << "Pascal compiler version 0.1 'Lexer'" << endl << "Made by Egor Kutselabskii, FEFU" << endl << "Curator: Alexander Klenin" << endl;
 		system("pause");
 		return 0;
-	}
-	else
+	case 2:
 		filename = argv[1];
+		mode = "normal";
+		break;
+	case 3:
+		filename = argv[1];
+		mode = argv[2];
+		break;
+	case 4:
+		filename = argv[1];
+		mode = argv[2];
+		pause = argv[3];
+	}
 
-	Lexer lexer;
-	if (!lexer.fileAssign(filename)) //Assign our file to lexer
+	if (mode != "normal" && mode != "lex")
 	{
-		system("pause");
+		cout << "ModeError:: incorrent mode" << endl;
 		return -1;
 	}
 
-	while(lexer.next().type != "eof");
+	Lexer lexer(mode);
+	if (!lexer.fileAssign(filename)) //Assign our file to lexer
+	{
+		if (pause == "p")
+			system("pause");
+		return -1;
+	}
 
-	system("pause");
+	if (mode == "normal")
+	{
+		Syntaxer syntaxer(&lexer, mode);
+		//try
+		syntaxer.parse();
+		//catch
+		syntaxer.print();
+	}
+	else
+	if (mode == "lex")
+		while(lexer.next().type != "eof");
+
+	//if (pause == "p")
+		system("pause");
 	return 0;
 }

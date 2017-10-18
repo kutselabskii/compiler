@@ -68,37 +68,40 @@ struct Token
 class Lexer
 {
 public:
-	Lexer();
+	Lexer(std::string);
 	~Lexer();
 
-	bool fileAssign(std::string filename);	//Assign a file to lexer (logs)
-	Token next();						//Parse assigned file (logs)
+	bool fileAssign(std::string filename);	
+	Token next();						
+	Token current();
 
 private:
-	void (Lexer::*action_[100][100])();	//Array of function pointers (logs sometimes)
+	void (Lexer::*_action[100][100])();	//Array of function pointers (logs sometimes)
 
-	std::ifstream file_;	//Assigned file to work with
+	std::string _mode;
+
+	std::ifstream _file;	//Assigned file to work with
 	char file_buffer_[200];	//Current line in (^) file
-	char *current_symbol_;	//Current symbol in (^) line
+	char *_current_symbol;	//Current symbol in (^) line
 
 	bool eof_;
 
-	int line_number_;
-	int column_number_;
+	int _line_number;
+	int _column_number;
 
-	States state_;				//Current state of a system
-	std::string token_;		//Current token
+	States _state;				//Current state of a system
+	std::string _token;		//Current token
 	Token return_value;
 	bool return_flag;
 
-	Codes charIdentify_(char symbol); //Type of current_symbol_
+	Codes _charIdentify(char symbol); //Type of _current_symbol
 
 	//Processing functions
 
 	//Utility functions for the processing functions
-	void pushAndStep_();
-	void print_(std::string);
-	void printTable_();
+	void _pushAndStep();
+	void _print(std::string);
+	void _printTable();
 
 	//IDLE state
 	void idleToIdle();
