@@ -18,7 +18,7 @@ Lexer::Lexer(string mode)
 
 	//IDLE state
 	_action[IDLE][SPACE] = &Lexer::idleToIdle;
-	_action[IDLE][LETTER] = &Lexer::idleToName;
+	_action[IDLE][LETTER] = &Lexer::idleToID;
 	_action[IDLE][DIGIT] = &Lexer::idleToInt;
 	_action[IDLE][QUOTE] = &Lexer::idleToString;
 	_action[IDLE][OP_SIGN] = &Lexer::idleToOperator;
@@ -26,19 +26,19 @@ Lexer::Lexer(string mode)
 	_action[IDLE][UNKNOWN] = &Lexer::idleToError;
 	_action[IDLE][COM_SIGN] = &Lexer::idleToComment;
 
-	//NAME state
-	_action[NAME][SPACE] = &Lexer::nameToIdle;
-	_action[NAME][LETTER] = &Lexer::nameToName;
-	_action[NAME][DIGIT] = &Lexer::nameToName;
-	_action[NAME][QUOTE] = &Lexer::nameToString;
-	_action[NAME][OP_SIGN] = &Lexer::nameToOperator;
-	_action[NAME][SEP_SIGN] = &Lexer::nameToSeparator;
-	_action[NAME][UNKNOWN] = &Lexer::nameToError;
-	_action[NAME][COM_SIGN] = &Lexer::nameToComment;
+	//ID state
+	_action[ID][SPACE] = &Lexer::IDToIdle;
+	_action[ID][LETTER] = &Lexer::IDToID;
+	_action[ID][DIGIT] = &Lexer::IDToID;
+	_action[ID][QUOTE] = &Lexer::IDToString;
+	_action[ID][OP_SIGN] = &Lexer::IDToOperator;
+	_action[ID][SEP_SIGN] = &Lexer::IDToSeparator;
+	_action[ID][UNKNOWN] = &Lexer::IDToError;
+	_action[ID][COM_SIGN] = &Lexer::IDToComment;
 
 	//INT state
 	_action[INT][SPACE] = &Lexer::intToIdle;
-	_action[INT][LETTER] = &Lexer::intToName;
+	_action[INT][LETTER] = &Lexer::intToID;
 	_action[INT][DIGIT] = &Lexer::intToInt;
 	_action[INT][QUOTE] = &Lexer::intToString;
 	_action[INT][OP_SIGN] = &Lexer::intToOperator;
@@ -48,7 +48,7 @@ Lexer::Lexer(string mode)
 
 	//FLOAT state
 	_action[FLOAT][SPACE] = &Lexer::floatToIdle;
-	_action[FLOAT][LETTER] = &Lexer::floatToName;
+	_action[FLOAT][LETTER] = &Lexer::floatToID;
 	_action[FLOAT][DIGIT] = &Lexer::floatToFloat;
 	_action[FLOAT][QUOTE] = &Lexer::floatToString;
 	_action[FLOAT][OP_SIGN] = &Lexer::floatToOperator;
@@ -58,7 +58,7 @@ Lexer::Lexer(string mode)
 
 	//STRING state
 	_action[STRING][SPACE] = &Lexer::stringToIdle;
-	_action[STRING][LETTER] = &Lexer::stringToName;
+	_action[STRING][LETTER] = &Lexer::stringToID;
 	_action[STRING][DIGIT] = &Lexer::stringToInt;
 	_action[STRING][QUOTE] = &Lexer::stringToString;
 	_action[STRING][OP_SIGN] = &Lexer::stringToOperator;
@@ -68,7 +68,7 @@ Lexer::Lexer(string mode)
 
 	//OPERATOR state
 	_action[OPERATOR][SPACE] = &Lexer::operatorToIdle;
-	_action[OPERATOR][LETTER] = &Lexer::operatorToName;
+	_action[OPERATOR][LETTER] = &Lexer::operatorToID;
 	_action[OPERATOR][DIGIT] = &Lexer::operatorToInt;
 	_action[OPERATOR][QUOTE] = &Lexer::operatorToString;
 	_action[OPERATOR][OP_SIGN] = &Lexer::operatorToOperator;
@@ -78,7 +78,7 @@ Lexer::Lexer(string mode)
 
 	//SEPARATOR state
 	_action[SEPARATOR][IDLE] = &Lexer::separatorToIdle;
-	_action[SEPARATOR][LETTER] = &Lexer::separatorToName;
+	_action[SEPARATOR][LETTER] = &Lexer::separatorToID;
 	_action[SEPARATOR][DIGIT] = &Lexer::separatorToInt;
 	_action[SEPARATOR][QUOTE] = &Lexer::separatorToString;
 	_action[SEPARATOR][OP_SIGN] = &Lexer::separatorToOperator;
@@ -93,9 +93,9 @@ Lexer::~Lexer()
 		_file.close();
 }
 
-bool Lexer::fileAssign(string filename)
+bool Lexer::fileAssign(string fileID)
 {
-	_file.open(filename);
+	_file.open(fileID);
 
 	if (!_file.is_open())
 	{
@@ -133,7 +133,8 @@ Token Lexer::next()
 		else
 		{
 			Token t;
-			t.type = "eof";
+			t.type = ENDOFFILE;
+			t.token = "End of file";
 			return t;
 		}
 	}

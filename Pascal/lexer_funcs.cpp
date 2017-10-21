@@ -2,7 +2,6 @@
 
 using namespace std;
 
-//Utility functions for the processing functions
 void Lexer::_pushAndStep()
 {
 	if (_current_symbol == nullptr || *_current_symbol == '\n' || *_current_symbol == '\0')
@@ -23,27 +22,28 @@ void Lexer::_pushAndStep()
 	}
 }
 
-void Lexer::_print(string type)
+void Lexer::_makeToken(States type)
 {
 	string h, buf;
-	for (int i = 0; i < _token.length(); i++)
+
+	//TODO COMPLETE
+	//make #123 and $abc
+	for (unsigned int i = 0; i < _token.length(); i++)	//That is ok
 		h.push_back(tolower((unsigned char)_token[i]));
 
-	if (type == "NAME" && keywords.find(_token) != keywords.end())
-		type = "KEYWORD";
+	if (type == OPERATOR && operators.find(_token) == operators.end())
+		throw LexerError(_line_number, _column_number, *(_current_symbol - 1));
+
+	if (type == ID && operators.find(_token) != operators.end())	//For div and mod checking
+		type = OPERATOR;
+	else 
+		if (type == ID && keywords.find(_token) != keywords.end())
+			type = KEYWORD;
+	//TODO COMPLETE
 
 	if (_mode == "lex")
 	{
-		cout.width(6);
-		cout << _line_number;
-		cout.width(6);
-		cout << _column_number;
-		cout.width(30);
-		cout << type;
-		cout.width(35);
-		cout << h;
-		cout.width(35);
-		cout << _token.c_str() << endl;
+		_print(type, h);
 	}
 	_token.clear();
 
@@ -66,6 +66,20 @@ void Lexer::_printTable()
 	cout << "Code representation" << endl;
 }
 
+void Lexer::_print(States type, string value)
+{
+	cout.width(6);
+	cout << _line_number;
+	cout.width(6);
+	cout << _column_number;
+	cout.width(30);
+	cout << stateToString[type];
+	cout.width(35);
+	cout << value;
+	cout.width(35);
+	cout << _token.c_str() << endl;
+}
+
 
 //IDLE state
 void Lexer::idleToIdle()
@@ -73,9 +87,9 @@ void Lexer::idleToIdle()
 	_pushAndStep();
 }
 
-void Lexer::idleToName()
+void Lexer::idleToID()
 {
-	_state = NAME;
+	_state = ID;
 	_token.clear();
 	_pushAndStep();
 }
@@ -116,12 +130,7 @@ void Lexer::idleToError()
 		_pushAndStep();
 	}
 	else
-	{
-		while (_charIdentify(*_current_symbol) == UNKNOWN)
-			_pushAndStep();
-		_state = IDLE;
-		_print("ERROR: Unexp. symbol");
-	}
+		throw LexerError(_line_number, _column_number, *_current_symbol);
 }
 
 void Lexer::idleToComment()
@@ -133,53 +142,45 @@ void Lexer::idleToComment()
 }
 
 
-//NAME state
-void Lexer::nameToIdle()
+//ID state
+void Lexer::IDToIdle()
 {
 	_state = IDLE;
-	_print("NAME");
+	_makeToken(ID);
 }
 
-void Lexer::nameToName()
+void Lexer::IDToID()
 {
 	_pushAndStep();
 }
 
-void Lexer::nameToString()
+void Lexer::IDToString()
 {
-	while (_charIdentify(*_current_symbol) == LETTER || _charIdentify(*_current_symbol) == QUOTE)
-		_pushAndStep();
-
-	_state = IDLE;
-	_print("ERROR: Unexp. sym. in NAME token");
+	throw LexerError(_line_number, _column_number, *_current_symbol);
 }
 
-void Lexer::nameToOperator()
+void Lexer::IDToOperator()
 {
 	_state = OPERATOR;
-	_print("NAME");
+	_makeToken(ID);
 	_pushAndStep();
 }
 
-void Lexer::nameToSeparator()
+void Lexer::IDToSeparator()
 {
 	_state = SEPARATOR;
-	_print("NAME");
+	_makeToken(ID);
 	_pushAndStep();
 }
 
-void Lexer::nameToError()
+void Lexer::IDToError()
 {
-	_print("NAME");
-	while (_charIdentify(*_current_symbol) == UNKNOWN)
-		_pushAndStep();
-	_state = IDLE;
-	_print("ERROR: Unexp. symbol");
+	throw LexerError(_line_number, _column_number, *_current_symbol);
 }
 
-void Lexer::nameToComment()
+void Lexer::IDToComment()
 {
-	_print("NAME");
+	_makeToken(ID);
 	while (*_current_symbol != '}' && !eof_)
 		_pushAndStep();
 	_pushAndStep();
@@ -192,10 +193,10 @@ void Lexer::nameToComment()
 void Lexer::intToIdle()
 {
 	_state = IDLE;
-	_print("INT");
+	_makeToken(INT);
 }
 
-void Lexer::intToName()
+void Lexer::intToID()
 {
 	if (*_current_symbol == 'e')
 	{
@@ -203,13 +204,7 @@ void Lexer::intToName()
 		_pushAndStep();
 	}
 	else
-	{
-		_state = IDLE;
-
-		while (_charIdentify(*_current_symbol) == LETTER)
-			_pushAndStep();
-		_print("ERROR: Unexp. sym. in INT token");
-	}
+		throw LexerError(_line_number, _column_number, *_current_symbol);
 }
 
 void Lexer::intToInt()
@@ -219,11 +214,7 @@ void Lexer::intToInt()
 
 void Lexer::intToString()
 {
-	while (_charIdentify(*_current_symbol) == DIGIT || _charIdentify(*_current_symbol) == QUOTE)
-		_pushAndStep();
-
-	_state = IDLE;
-	_print("ERROR: Unexp. sym. in INT token");
+	throw LexerError(_line_number, _column_number, *_current_symbol);
 }
 
 void Lexer::intToOperator()
@@ -233,7 +224,7 @@ void Lexer::intToOperator()
 		if (*(_current_symbol + 1) == '.')
 		{
 			_state = OPERATOR;
-			_print("INT");
+			_makeToken(INT);
 			_pushAndStep();
 		}
 		else
@@ -244,9 +235,8 @@ void Lexer::intToOperator()
 	}
 	else
 	{
-
 		_state = OPERATOR;
-		_print("INT");
+		_makeToken(INT);
 		_pushAndStep();
 	}
 }
@@ -254,23 +244,19 @@ void Lexer::intToOperator()
 void Lexer::intToSeparator()
 {
 	_state = SEPARATOR;
-	_print("INT");
+	_makeToken(INT);
 	_pushAndStep();
 }
 
 void Lexer::intToError()
 {
-	_print("INT");
-	while (_charIdentify(*_current_symbol) == UNKNOWN)
-		_pushAndStep();
-	_state = IDLE;
-	_print("ERROR: Unexp. symbol");
+	throw LexerError(_line_number, _column_number, *_current_symbol);
 }
 
 
 void Lexer::intToComment()
 {
-	_print("INT");
+	_makeToken(INT);
 	while (*_current_symbol != '}' && !eof_)
 		_pushAndStep();
 	_pushAndStep();
@@ -283,25 +269,19 @@ void Lexer::floatToIdle()
 {
 	if (_charIdentify(_token.back()) != DIGIT)
 	{
-		_state = IDLE;
-		_print("ERROR: Unexp. end of a FLOAT token");
-		_pushAndStep();
+		throw LexerError(_line_number, _column_number, *_current_symbol);
 	}
 	else
 	{
 		_state = IDLE;
-		_print("FLOAT");
+		_makeToken(FLOAT);
 		_pushAndStep();
 	}
 }
 
-void Lexer::floatToName()
+void Lexer::floatToID()
 {
-	_state = IDLE;
-
-	while (_charIdentify(*_current_symbol) == LETTER)
-		_pushAndStep();
-	_print("ERROR: Unexp. sym. in FLOAT token");
+	throw LexerError(_line_number, _column_number, *_current_symbol);
 }
 
 void Lexer::floatToFloat()
@@ -311,39 +291,31 @@ void Lexer::floatToFloat()
 
 void Lexer::floatToString()
 {
-	while (_charIdentify(*_current_symbol) == DIGIT || _charIdentify(*_current_symbol) == QUOTE)
-		_pushAndStep();
-
-	_state = IDLE;
-	_print("ERROR: Unexp. sym. in FLOAT token");
+	throw LexerError(_line_number, _column_number, *_current_symbol);
 }
 
 void Lexer::floatToOperator()
 {
 	_state = OPERATOR;
-	_print("FLOAT");
+	_makeToken(FLOAT);
 	_pushAndStep();
 }
 
 void Lexer::floatToSeparator()
 {
 	_state = SEPARATOR;
-	_print("FLOAT");
+	_makeToken(FLOAT);
 	_pushAndStep();
 }
 
 void Lexer::floatToError()
 {
-	_print("FLOAT");
-	while (_charIdentify(*_current_symbol) == UNKNOWN)
-		_pushAndStep();
-	_state = IDLE;
-	_print("ERROR: Unexp. symbol");
+	throw LexerError(_line_number, _column_number, *_current_symbol);
 }
 
 void Lexer::floatToComment()
 {
-	_print("FLOAT");
+	_makeToken(FLOAT);
 	while (*_current_symbol != '}' && !eof_)
 		_pushAndStep();
 	_pushAndStep();
@@ -358,13 +330,10 @@ void Lexer::stringToIdle()
 	if (*_current_symbol == ' ' || *_current_symbol == '\t')
 		_pushAndStep();
 	else
-	{
-		_print("ERROR: Unexp. line end. in STRING token");
-		_state = IDLE;
-	}
+		throw LexerError(_line_number, _column_number, *_current_symbol);
 }
 
-void Lexer::stringToName()
+void Lexer::stringToID()
 {
 	_pushAndStep();
 }
@@ -378,7 +347,7 @@ void Lexer::stringToString()
 {
 	_state = IDLE;
 	_pushAndStep();
-	_print("STRING");
+	_makeToken(STRING);
 }
 
 void Lexer::stringToOperator()
@@ -405,27 +374,27 @@ void Lexer::stringToComment()
 void Lexer::operatorToIdle()
 {
 	_state = IDLE;
-	_print("OPERATOR");
+	_makeToken(OPERATOR);
 }
 
-void Lexer::operatorToName()
+void Lexer::operatorToID()
 {
-	_state = NAME;
-	_print("OPERATOR");
+	_state = ID;
+	_makeToken(OPERATOR);
 	_pushAndStep();
 }
 
 void Lexer::operatorToInt()
 {
 	_state = INT;
-	_print("OPERATOR");
+	_makeToken(OPERATOR);
 	_pushAndStep();
 }
 
 void Lexer::operatorToString()
 {
 	_state = STRING;
-	_print("OPERATOR");
+	_makeToken(OPERATOR);
 	_pushAndStep();
 }
 
@@ -443,7 +412,7 @@ void Lexer::operatorToOperator()
 	{
 		if (_token.length() == 2)
 			if (_token != "<<" && _token != ">>")
-				_print("OPERATOR");
+				_makeToken(OPERATOR);
 		_pushAndStep();
 	}
 }
@@ -451,22 +420,18 @@ void Lexer::operatorToOperator()
 void Lexer::operatorToSeparator()	
 {
 	_state = SEPARATOR;
-	_print("OPERATOR");
+	_makeToken(OPERATOR);
 	_pushAndStep();
 }
 
 void Lexer::operatorToError()
 {
-	_print("OPERATOR");
-	while (_charIdentify(*_current_symbol) == UNKNOWN)
-		_pushAndStep();
-	_state = IDLE;
-	_print("ERROR: Unexp. symbol");
+	throw LexerError(_line_number, _column_number, *_current_symbol);
 }
 
 void Lexer::operatorToComment()
 {
-	_print("OPERATOR");
+	_makeToken(OPERATOR);
 	while (*_current_symbol != '}' && !eof_)
 		_pushAndStep();
 	_pushAndStep();
@@ -479,28 +444,28 @@ void Lexer::operatorToComment()
 void Lexer::separatorToIdle()
 {
 	_state = IDLE;
-	_print("SEPARATOR");
+	_makeToken(SEPARATOR);
 	_pushAndStep();
 }
 
-void Lexer::separatorToName()
+void Lexer::separatorToID()
 {
-	_state = NAME;
-	_print("SEPARATOR");
+	_state = ID;
+	_makeToken(SEPARATOR);
 	_pushAndStep();
 }
 
 void Lexer::separatorToInt()
 {
 	_state = INT;
-	_print("SEPARATOR");
+	_makeToken(SEPARATOR);
 	_pushAndStep();
 }
 
 void Lexer::separatorToString()
 {
 	_state = STRING;
-	_print("SEPARATOR");
+	_makeToken(SEPARATOR);
 	_pushAndStep();
 }
 
@@ -510,7 +475,7 @@ void Lexer::separatorToOperator()
 	{
 		_state = IDLE;
 		_pushAndStep();
-		_print("OPERATOR");
+		_makeToken(OPERATOR);
 	}
 	else if (_token == "(" && *_current_symbol == '*')
 	{
@@ -524,7 +489,7 @@ void Lexer::separatorToOperator()
 	else
 	{
 		_state = OPERATOR;
-		_print("SEPARATOR");
+		_makeToken(SEPARATOR);
 		_pushAndStep();
 	}
 }
@@ -532,22 +497,18 @@ void Lexer::separatorToOperator()
 void Lexer::separatorToSeparator()
 {
 	_state = SEPARATOR;
-	_print("SEPARATOR");
+	_makeToken(SEPARATOR);
 	_pushAndStep();
 }
 
 void Lexer::separatorToError()
 {
-	_print("SEPARATOR");
-	while (_charIdentify(*_current_symbol) == UNKNOWN)
-		_pushAndStep();
-	_state = IDLE;
-	_print("ERROR: Unexp. symbol");
+	throw LexerError(_line_number, _column_number, *_current_symbol);
 }
 
 void Lexer::separatorToComment()
 {
-	_print("SEPARATOR");
+	_makeToken(SEPARATOR);
 	while (*_current_symbol != '}' && !eof_)
 		_pushAndStep();
 	_pushAndStep();

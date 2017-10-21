@@ -111,15 +111,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="enums.h" />
+    <ClInclude Include="Exceptions.h" />
     <ClInclude Include="lexer.h" />
-    <ClInclude Include="syntaxer.h" />
+    <ClInclude Include="parser.h" />
     <ClInclude Include="tree_classes.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="lexer.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="processing.cpp" />
-    <ClCompile Include="syntaxer.cpp" />
+    <ClCompile Include="lexer_funcs.cpp" />
+    <ClCompile Include="parser.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="codestyle.txt" />

@@ -5,55 +5,22 @@
 #include <fstream>
 #include <ctype.h>
 #include <string>
-#include <set>
 
-enum States	//State codes
-{
-	IDLE,
-	NAME,
-	INT,
-	FLOAT,
-	STRING,
-	OPERATOR,
-	SEPARATOR,
-	ERROR,
-	COMMENT, 
-	KEYWORD
-};
-
-
-enum Codes	//Symbol codes
-{
-	SPACE,
-	LETTER,
-	DIGIT,
-	OP_SIGN,
-	SEP_SIGN,
-	QUOTE,
-	UNKNOWN,
-	COM_SIGN
-};
-
-const std::set <std::string> keywords = 
-{	"and", "array", "asm", "begin", "break", "case", "const", "constructor", "continue", "destructor", 
-	"div", "do", "downto", "else", "end", "false", "file", "for", "function", "goto", "if", "implementation", 
-	"in", "inline", "interface", "label", "mod", "nil", "not", "object", "of", "on", "operator", "or", "packed",
-	"procedure", "program", "record", "repeat", "set", "shl", "shr", "string", "then", "to", "true", "type",
-	"unit", "until", "uses", "var", "while", "with", "xor"
-};
+#include "Exceptions.h"
+#include "enums.h"
 
 //TODO make this table useful
 const States fsm[100][100] = 
 {
 			       //Symbol
 	//State          space + \n,   letter,   digit,    quote,      operator,    separator   unknown   comment
-	/*IDLE*/         {IDLE,          NAME,     INT,    STRING,     OPERATOR,   SEPARATOR,   ERROR,    COMMENT},
-	/*NAME*/         {IDLE,          NAME,    NAME,     ERROR,     OPERATOR,   SEPARATOR,   ERROR,    COMMENT},
+	/*IDLE*/         {IDLE,          ID,     INT,    STRING,     OPERATOR,   SEPARATOR,   ERROR,    COMMENT},
+	/*ID*/			 {IDLE,          ID,    ID,     ERROR,     OPERATOR,   SEPARATOR,   ERROR,    COMMENT},
 	/*INT*/          {IDLE,         ERROR,     INT,     ERROR,     OPERATOR,       ERROR,   ERROR,    COMMENT},
 	/*FLOAT*/        {IDLE,         ERROR,   FLOAT,     ERROR,     OPERATOR,       ERROR,   ERROR,    COMMENT},
 	/*STRING*/       {STRING,      STRING,  STRING,      IDLE,       STRING,      STRING,  STRING,     STRING},
-	/*OPERATOR*/     {IDLE,          NAME,     INT,    STRING,        ERROR,   SEPARATOR,   ERROR,    COMMENT},
-	/*SEPARATOR*/	 {IDLE,          NAME,     INT,    STRING,     OPERATOR,   SEPARATOR,   ERROR,    COMMENT},
+	/*OPERATOR*/     {IDLE,          ID,     INT,    STRING,        ERROR,   SEPARATOR,   ERROR,    COMMENT},
+	/*SEPARATOR*/	 {IDLE,          ID,     INT,    STRING,     OPERATOR,   SEPARATOR,   ERROR,    COMMENT},
 
 	/*ERROR*/        { }
 };
@@ -62,7 +29,8 @@ typedef void (*FuncType)();
 
 struct Token
 {
-	std::string token, type;
+	States type;
+	std::string token;
 };
 
 class Lexer
@@ -71,9 +39,11 @@ public:
 	Lexer(std::string);
 	~Lexer();
 
-	bool fileAssign(std::string filename);	
+	bool fileAssign(std::string fileID);	
 	Token next();						
 	Token current();
+	const int getLine() const { return _line_number; }
+	const int getColumn() const { return _column_number; }
 
 private:
 	void (Lexer::*_action[100][100])();	//Array of function pointers (logs sometimes)
@@ -100,12 +70,13 @@ private:
 
 	//Utility functions for the processing functions
 	void _pushAndStep();
-	void _print(std::string);
+	void _makeToken(States type);
+	void _print(States type, std::string);
 	void _printTable();
 
 	//IDLE state
 	void idleToIdle();
-	void idleToName();
+	void idleToID();
 	void idleToInt();
 	void idleToString();
 	void idleToOperator();
@@ -113,19 +84,19 @@ private:
 	void idleToError();
 	void idleToComment();
 
-	//NAME state
-	void nameToIdle();
-	void nameToName();
-	/*void nameToInt(); No cases*/
-	void nameToString();	//Error state
-	void nameToOperator();
-	void nameToSeparator();
-	void nameToError();
-	void nameToComment();
+	//ID state
+	void IDToIdle();
+	void IDToID();
+	/*void IDToInt(); No cases*/
+	void IDToString();	//Error state
+	void IDToOperator();
+	void IDToSeparator();
+	void IDToError();
+	void IDToComment();
 
 	//INT state
 	void intToIdle();
-	void intToName();	//Error state
+	void intToID();	//Error state
 	void intToInt();
 	void intToString();	//Error state
 	void intToOperator();
@@ -135,7 +106,7 @@ private:
 
 	//FLOAT state
 	void floatToIdle();
-	void floatToName();
+	void floatToID();
 	void floatToFloat();
 	void floatToString();
 	void floatToOperator();
@@ -145,7 +116,7 @@ private:
 
 	//STRING state
 	void stringToIdle();
-	void stringToName();
+	void stringToID();
 	void stringToInt();
 	void stringToString();
 	void stringToOperator();
@@ -155,7 +126,7 @@ private:
 
 	//OPERATOR state
 	void operatorToIdle();
-	void operatorToName();
+	void operatorToID();
 	void operatorToInt();
 	void operatorToString();
 	void operatorToOperator();
@@ -165,7 +136,7 @@ private:
 
 	//SEPARATOR state
 	void separatorToIdle();
-	void separatorToName();
+	void separatorToID();
 	void separatorToInt();
 	void separatorToString();
 	void separatorToOperator();

@@ -24,11 +24,17 @@
     <ClInclude Include="lexer.h">
       <Filter>Lexer</Filter>
     </ClInclude>
-    <ClInclude Include="syntaxer.h">
-      <Filter>Syntaxer</Filter>
-    </ClInclude>
     <ClInclude Include="tree_classes.h">
       <Filter>Syntaxer</Filter>
+    </ClInclude>
+    <ClInclude Include="parser.h">
+      <Filter>Syntaxer</Filter>
+    </ClInclude>
+    <ClInclude Include="Exceptions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="enums.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -38,10 +44,10 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="processing.cpp">
+    <ClCompile Include="lexer_funcs.cpp">
       <Filter>Lexer</Filter>
     </ClCompile>
-    <ClCompile Include="syntaxer.cpp">
+    <ClCompile Include="parser.cpp">
       <Filter>Syntaxer</Filter>
     </ClCompile>
   </ItemGroup>
