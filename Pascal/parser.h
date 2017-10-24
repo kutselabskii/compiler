@@ -32,7 +32,7 @@ public:
 
 	//Structured
 	Node* parseWhileStatement();
-	Node* parseCompoundStatement();
+	Node* parseForStatement();
 
 	//Type
 	Node* parseTypeDefinitionPart();

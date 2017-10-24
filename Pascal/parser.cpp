@@ -180,15 +180,80 @@ Node* Parser::parseStructuredStatement()
 
 	if (cur.token == "while")
 		node = parseWhileStatement();
+	else if (cur.token == "for")
+	{
+		node = parseForStatement();
+	}
 	else if (cur.token == "begin")
 	{
+		_lexer->next();
 		node = parseStatement();
 		cur = _lexer->current();
 		if (cur.token != "end")
 			throw ParserError(_lexer->getLine(), _lexer->getColumn(), cur.token, SYMBOLEXPECTED, "end");
+		cur = _lexer->next();
+		if (cur.token != ";")
+			throw ParserError(_lexer->getLine(), _lexer->getColumn(), cur.token, SYMBOLEXPECTED, ";");
+		_lexer->next();
 	}
 	else
 		throw ParserError(_lexer->getLine(), _lexer->getColumn(), cur.token, EXPRESSIONEXPECTED);
+
+	return node;
+}
+
+Node* Parser::parseForStatement()
+{
+	Node *node;
+	Token cur;
+
+	cur.token = "For";
+
+	node = new Statement(cur);
+
+	cur.token = "Parameter";
+	node->child.push_back(new Statement(cur));
+
+	cur = _lexer->next();
+	if (cur.type != ID)
+		throw ParserError(_lexer->getLine(), _lexer->getColumn(), cur.token, IDEXPECTED);
+
+	Node *h = node->child.back();
+	h->child.push_back(new Variable(cur));
+
+	cur = _lexer->next();
+	if (cur.token != ":=")
+		throw ParserError(_lexer->getLine(), _lexer->getColumn(), cur.token, SYMBOLEXPECTED, ":=");
+
+	cur.token = "Initial expression";
+	node->child.push_back(new Statement(cur));
+
+	h = node->child.back();
+	h->child.push_back(parseExpression());
+
+	cur.token = "Cycle operation";
+	node->child.push_back(new Statement(cur));
+
+	cur = _lexer->current();
+	if (cur.token != "to" && cur.token != "downto")
+		throw ParserError(_lexer->getLine(), _lexer->getColumn(), cur.token, SYMBOLEXPECTED, "to or downto");
+
+	h = node->child.back();
+	h->child.push_back(new Statement(cur));
+
+	cur.token = "Final expression";
+	node->child.push_back(new Statement(cur));
+
+	h = node->child.back();
+	h->child.push_back(parseExpression());
+
+	cur = _lexer->current();
+
+	if (cur.token != "do")
+		throw ParserError(_lexer->getLine(), _lexer->getColumn(), cur.token, SYMBOLEXPECTED, "do");
+
+	_lexer->next();
+	node->child.push_back(parseStatement());
 
 	return node;
 }
@@ -217,7 +282,6 @@ Node* Parser::parseWhileStatement()
 	node->child.push_back(parseStatement());
 
 	return node;
-
 }
 
 Node* Parser::parseAssignmentStatement()
@@ -481,4 +545,3 @@ Node* Parser::parseFactor()
 		throw ParserError(_lexer->getLine(), _lexer->getColumn(), cur.token, IDEXPECTED);
 	}
 }
-

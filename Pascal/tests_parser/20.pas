@@ -16,8 +16,11 @@ qwerty := a div b;
 
 while (a < b) do
 begin
-	a := 1 + 11;
-end
+	while (a < b) do
+	begin
+		a := 1 + 11;
+	end;
+end;
 
 qwerty := d / c;
 end.
