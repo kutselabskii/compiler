@@ -13,16 +13,38 @@ public:
 
 	void printTree(Node*, std::string, bool);
 
-
+	//Program
 	Node* parseProgram();
 	Node* parseProgramHeading();
 
+	//Everything
 	Node* parseBlock();
 	Node* parseBlockDeclarationPart();
 	Node* parseBlockStatementPart();
 
+
+	Node* parseStatement();
+	Node* parseSimpleStatement();
+	Node* parseStructuredStatement();
+
+	//Simple
+	Node* parseAssignmentStatement();
+
+	//Structured
+	Node* parseWhileStatement();
+	Node* parseCompoundStatement();
+
+	//Type
+	Node* parseTypeDefinitionPart();
+	Node* parseTypeDefinition();
+
+	//Const
 	Node* parseConstantDefinitionPart();
 	Node* parseConstantDefinition();
+
+	//Var
+	Node* parseVariableDefinitionPart();
+	Node* parseVariableDefinition();
 
 
 	Node* parseExpression();

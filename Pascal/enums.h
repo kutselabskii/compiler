@@ -15,7 +15,8 @@ enum States	//State codes
 	ERROR,
 	COMMENT,
 	KEYWORD,
-	ENDOFFILE
+	ENDOFFILE,
+	DATATYPE
 };
 
 const std::string stateToString[] = {
@@ -29,7 +30,8 @@ const std::string stateToString[] = {
 	"ERROR",
 	"COMMENT",
 	"KEYWORD",
-	"ENDOFFILE"
+	"ENDOFFILE",
+	"DATATYPE"
 };
 
 enum Codes	//Symbol codes
@@ -52,7 +54,14 @@ const std::set <std::string> keywords =
 "unit", "until", "uses", "var", "while", "with", "xor"
 };
 
+const std::set <std::string> datatypes =
+{
+	"byte", "shortint", "smallint", "word", "integer", "cardinal", "longint", "longword", "int64", "qword",
+	"real", "single", "double", "extended", "comp", "currency", "boolean", "bytebool", "wordbool", "longbool"
+};
+
 const std::set <std::string> operators =
 {
-	"+", "-", "*", "/", "div", "mod", "not", "and", "or", "xor", "shl", "shr", "<<", ">>", "<>", "><", "<=", ">=", "in", "=", "<", ">", "."
+	"+", "-", "*", "/", "div", "mod", "not", "and", "or", "xor", "shl", "shr", "<<", ">>", "<>", "><", "<=", ">=",
+	"in", "=", "<", ">", ".", ":=", "+=", "-=", "*=", "/=", ">>=", "<<="
 };

@@ -34,13 +34,17 @@ void Lexer::_makeToken(States type)
 	if (type == OPERATOR && operators.find(_token) == operators.end())
 		throw LexerError(_line_number, _column_number, *(_current_symbol - 1));
 
-	if (type == ID && operators.find(_token) != operators.end())	//For div and mod checking
-		type = OPERATOR;
-	else 
-		if (type == ID && keywords.find(_token) != keywords.end())
+	if (type == ID)
+	{
+		if (keywords.find(_token) != keywords.end())
 			type = KEYWORD;
-	//TODO COMPLETE
+		if (datatypes.find(_token) != datatypes.end())
+			type = DATATYPE;
+		if (operators.find(_token) != operators.end())
+			type = OPERATOR;
+	}
 
+	//TODO COMPLETE
 	if (_mode == "lex")
 	{
 		_print(type, h);
@@ -387,7 +391,8 @@ void Lexer::operatorToID()
 void Lexer::operatorToInt()
 {
 	_state = INT;
-	_makeToken(OPERATOR);
+	if (_token != "-")
+		_makeToken(OPERATOR);
 	_pushAndStep();
 }
 
