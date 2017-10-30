@@ -55,5 +55,6 @@
     <Text Include="codestyle.txt">
       <Filter>Resource Files</Filter>
     </Text>
+    <Text Include="grammar.txt" />
   </ItemGroup>
 </Project>

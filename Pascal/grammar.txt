@@ -1,0 +1,118 @@
+program
+	program-heading block '.'
+
+program-heading
+	'program' ID ';'
+
+block
+	declaration-part statement-part
+
+declaration part
+	[constant-definition-part]
+	[type-definition-part]
+	[variable-definition-part]
+	//[procedure-and-function-declaration-part]
+
+const-definition-part
+	'const' constant-definition ';' {constant-definition ';'}
+
+constant-definition
+	ID = constant
+
+type-definition-part
+	'type' type-definition ';' {type-definition}
+
+type-definition
+	ID = type
+
+constant-definition
+	ID = type
+
+variable-declaration-part
+	'var' variable-declaration ';' {variable-declaration ';' }
+
+variable-declaration
+	identifier-list ':' type
+
+identifier-list
+	identifier {',' identifier}
+
+statement-part
+	'begin' statement ';' {statement ';' } 'end'
+
+statement
+	(simple-statement | structured-statement)
+	
+simple-statement
+	[assignment-statement | /*procedure-statement*/]
+
+assignment-statement
+	variable (:= | += | /*...*/) expression
+
+structured-statement
+	(compound-statement | repetitive-statement | /*conditional-statement*/)
+
+compound-statement
+	'begin' statement ';' {statement ';'} 'end' ';'
+
+repetitive-statement
+	(while-statement | for-statement | repeat-statement)
+
+while-statement
+	'while' expression 'do' statement
+
+for-statement
+	'for' variable ':=' initial-expression ('to' | 'downto') final-expression 'do' statement
+
+repeat-statement
+	'repeat' statement ';' {statement ';'} 'until' expression 
+
+initial-expression
+	expression
+
+final-expression
+	expression
+
+expression
+	simple-expression [relational-operator simple-expression]
+
+
+simple-expression
+	/*[sign]*/ term {additional-operator term}
+
+term
+	factor {multiplicational-operator factor}
+
+factor
+	( variable | number | string | '(' expression ')' )
+
+addition-operator
+	( + | - | or )
+
+multiplicational-operator
+	( * | / | div | mod | and )
+
+variable
+	identifier
+
+type
+	simple-type | array-type | record-type
+
+simple-type
+	identifier
+
+record-type
+	'record' variable-definition-part 'end'
+
+array-type
+	'array' '[' range {',' range} ']' 'of' type
+
+
+identifier
+	letter {letter | digit}
+
+letter
+	r/A-z/
+
+digit
+	r/0-9/

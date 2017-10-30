@@ -33,6 +33,9 @@ public:
 	//Structured
 	Node* parseWhileStatement();
 	Node* parseForStatement();
+	Node* parseRepeatStatement();
+	Node* parseIfStatement();
+	Node* parseCompoundStatement();
 
 	//Type
 	Node* parseTypeDefinitionPart();
@@ -46,8 +49,14 @@ public:
 	Node* parseVariableDefinitionPart();
 	Node* parseVariableDefinition();
 
+	//Variable types
+	Node* parseType();
+	Node* parseArray();
+	Node* parseRecord();
 
+	//Expression
 	Node* parseExpression();
+	Node* parseSimpleExpression();
 	Node* parseTerm();
 	Node* parseFactor();
 

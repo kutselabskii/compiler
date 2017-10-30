@@ -30,6 +30,7 @@ void Parser::printTree(Node *node, string prefix, bool isleft)
 	{
 		cout << prefix << (isleft ? "|-- " : "|__ ") << "" << node->token.token << "" << endl;
 		prefix = prefix + (isleft ? "|   " : "    ");
+
 		for (unsigned int i = 1; i < node->child.size(); i++)
 			printTree(node->child[i], prefix, true);
 		if (!node->child.empty())
@@ -133,6 +134,11 @@ Node* Parser::parseBlockStatementPart()
 		node->child.push_back(parseStatement());
 		cur = _lexer->current();
 
+		//DIRTY HACK
+		if (cur.token == ";")
+			cur = _lexer->next();
+		//DIRTY HACK
+
 		if (cur.type == ENDOFFILE || cur.token == ".")
 			throw ParserError(_lexer->getLine(), _lexer->getColumn(), cur.token, SYMBOLEXPECTED, "end");
 	}
@@ -148,6 +154,11 @@ Node* Parser::parseStatement()
 	Token cur;
 
 	cur = _lexer->current();
+
+	//DIRTY HACK
+	if (cur.token == ";")
+		cur = _lexer->next();
+	//DIRTY HACK
 
 	if (cur.type == KEYWORD)
 		node = parseStructuredStatement();
@@ -181,25 +192,86 @@ Node* Parser::parseStructuredStatement()
 	if (cur.token == "while")
 		node = parseWhileStatement();
 	else if (cur.token == "for")
-	{
 		node = parseForStatement();
-	}
+	else if (cur.token == "repeat")
+		node = parseRepeatStatement();
 	else if (cur.token == "begin")
-	{
-		_lexer->next();
-		node = parseStatement();
-		cur = _lexer->current();
-		if (cur.token != "end")
-			throw ParserError(_lexer->getLine(), _lexer->getColumn(), cur.token, SYMBOLEXPECTED, "end");
-		cur = _lexer->next();
-		if (cur.token != ";")
-			throw ParserError(_lexer->getLine(), _lexer->getColumn(), cur.token, SYMBOLEXPECTED, ";");
-		_lexer->next();
-	}
+		node = parseCompoundStatement();
+	else if (cur.token == "if")
+		node = parseIfStatement();
 	else
 		throw ParserError(_lexer->getLine(), _lexer->getColumn(), cur.token, EXPRESSIONEXPECTED);
 
 	return node;
+}
+
+Node* Parser::parseCompoundStatement()
+{
+	Node *node;
+	Token cur;
+
+	cur.token = "Compound statement";
+	node = new Statement(cur);
+	cur = _lexer->next();
+	while (cur.token != "end")
+	{
+		node->child.push_back(parseStatement());
+		cur = _lexer->next();
+	}
+	cur = _lexer->next();
+	if (cur.token != ";")
+		throw ParserError(_lexer->getLine(), _lexer->getColumn(), cur.token, SYMBOLEXPECTED, ";");
+
+	return node;
+}
+
+Node* Parser::parseIfStatement()
+{
+	Node *node;
+	Token cur;
+
+	cur.token = "If";
+
+	node = new Statement(cur);
+
+	cur.token = "Condition";
+	node->child.push_back(new Statement(cur));
+
+	Node *h = node->child.back();
+	h->child.push_back(parseExpression());
+
+	cur = _lexer->current();
+	if (cur.token != "then")
+		throw ParserError(_lexer->getLine(), _lexer->getColumn(), cur.token, SYMBOLEXPECTED, "then");
+
+	cur.token = "Statement";
+	node->child.push_back(new Statement(cur));
+
+	_lexer->next();
+
+	h = node->child.back();
+	h->child.push_back(parseStatement());
+
+	cur = _lexer->current();
+	if (cur.token == ";")
+	{
+		_lexer->next();
+		return node;
+	}
+	else if (cur.token == "else")
+	{
+		cur.token = "Otherwise";
+		node->child.push_back(new Statement(cur));
+
+		_lexer->next();
+
+		h = node->child.back();
+		h->child.push_back(parseStatement());
+
+		return node;
+	}
+	else
+		throw ParserError(_lexer->getLine(), _lexer->getColumn(), cur.token, SYMBOLEXPECTED, ";");
 }
 
 Node* Parser::parseForStatement()
@@ -284,6 +356,40 @@ Node* Parser::parseWhileStatement()
 	return node;
 }
 
+Node* Parser::parseRepeatStatement()
+{
+	Node *node;
+	Token cur;
+
+	cur.token = "Repeat";
+
+	node = new Statement(cur);
+
+	cur = _lexer->next();
+	while (cur.token != "until")
+	{
+		node->child.push_back(parseStatement());
+		cur = _lexer->next();
+	}
+	
+
+	if (cur.type == ENDOFFILE)
+		throw ParserError(_lexer->getLine(), _lexer->getColumn(), cur.token, SYMBOLEXPECTED, "until");
+
+	cur.token = "Condition";
+	node->child.push_back(new Statement(cur));
+
+	Node *h = node->child.back();
+	h->child.push_back(parseExpression());
+
+	cur = _lexer->current();
+
+	if (cur.token != ";")
+		throw ParserError(_lexer->getLine(), _lexer->getColumn(), cur.token, SYMBOLEXPECTED, ";");
+
+	return node;
+}
+
 Node* Parser::parseAssignmentStatement()
 {
 	Node *node;
@@ -305,10 +411,6 @@ Node* Parser::parseAssignmentStatement()
 		throw ParserError(_lexer->getLine(), _lexer->getColumn(), cur.token, OPERATOREXPECTED);
 	Node *child = node->child.back();
 	child->child.push_back(parseExpression());
-	cur = _lexer->current();
-	if (cur.token != ";")
-		throw ParserError(_lexer->getLine(), _lexer->getColumn(), cur.token, SYMBOLEXPECTED, ";");
-	_lexer->next();
 	return node;
 	//TODOTODO
 	//TODOTODO
@@ -415,19 +517,125 @@ Node* Parser::parseVariableDefinition()
 		}
 		else if (cur.token == ":")
 		{
-			cur = _lexer->next();
-			if (cur.type == DATATYPE)
-			{
-				node->token.type = DATATYPE;
-				node->token.token = cur.token;
-				return node;
-			}
-			else
-				throw ParserError(_lexer->getLine(), _lexer->getColumn(), cur.token, IDEXPECTED);
+			Node *h = parseType();
+
+			node->token.type = h->token.type;
+			node->token.token = h->token.token;
+
+			for (unsigned int i = 0; i < h->child.size(); i++)
+				node->child.push_back(h->child[i]);
+
+			return node;
 		}
 		else
 			throw ParserError(_lexer->getLine(), _lexer->getColumn(), cur.token, SYMBOLEXPECTED, "=");
 	}
+}
+
+Node* Parser::parseType()
+{
+	Node *node;
+	Token cur;
+
+	cur = _lexer->next();
+	if (cur.type == DATATYPE)
+		node = new Statement(cur);
+	else if (cur.token == "array")
+		node = parseArray();
+	else if (cur.token == "record")
+		node = parseRecord();
+	else
+		throw ParserError(_lexer->getLine(), _lexer->getColumn(), cur.token, KEYWORDEXPECTED);
+
+	return node;
+}
+
+Node* Parser::parseRecord()
+{
+	Node *node;
+	Token cur;
+
+	cur.token = "Record";
+	node = new Statement(cur);
+
+	cur = _lexer->next();
+
+	if (cur.type != ID)
+		throw ParserError(_lexer->getLine(), _lexer->getColumn(), cur.token, IDEXPECTED);
+	while (cur.type == ID)
+	{
+		node->child.push_back(parseVariableDefinition());
+		cur = _lexer->next();
+		if (cur.token != ";")
+			throw ParserError(_lexer->getLine(), _lexer->getColumn(), cur.token, SYMBOLEXPECTED, ";");
+		cur = _lexer->next();
+	}
+	
+	if (cur.token != "end")
+		throw ParserError(_lexer->getLine(), _lexer->getColumn(), cur.token, SYMBOLEXPECTED, "end");
+
+	return node;
+}
+
+Node* Parser::parseArray()
+{
+	Node *node;
+	Token cur;
+
+	cur.token = "Array";
+
+	node = new Node(cur);
+
+	cur = _lexer->next();
+	if (cur.token != "[")
+		throw ParserError(_lexer->getLine(), _lexer->getColumn(), cur.token, SYMBOLEXPECTED, "[");
+
+	do
+	{
+		cur = _lexer->next();
+		if (cur.type != INT)
+			throw ParserError(_lexer->getLine(), _lexer->getColumn(), cur.token, CONSTANTEXPECTED);
+
+		Token sample;
+		sample.token = "Range";
+		Node *h = new Statement(sample);
+
+		h->child.push_back(new Constant(cur));
+
+		cur = _lexer->next();
+
+		if (cur.token != "..")
+			throw ParserError(_lexer->getLine(), _lexer->getColumn(), cur.token, SYMBOLEXPECTED, "..");
+
+		cur = _lexer->next();
+		if (cur.type != INT)
+			throw ParserError(_lexer->getLine(), _lexer->getColumn(), cur.token, CONSTANTEXPECTED);
+
+		h->child.push_back(new Constant(cur));
+
+		node->child.push_back(h);
+
+		cur = _lexer->next();
+	} while (cur.token == ",");
+
+	if (cur.token != "]")
+		throw ParserError(_lexer->getLine(), _lexer->getColumn(), cur.token, SYMBOLEXPECTED, "]");
+
+
+	cur = _lexer->next();
+
+	if (cur.token != "of")
+		throw ParserError(_lexer->getLine(), _lexer->getColumn(), cur.token, SYMBOLEXPECTED, "of");
+
+	Node *h;
+	cur.token = "Element type";
+
+	h = new Statement(cur);
+	h->child.push_back(parseType());
+
+	node->child.push_back(h);
+
+	return node;
 }
 
 Node* Parser::parseTypeDefinitionPart()
@@ -483,9 +691,27 @@ Node* Parser::parseExpression()
 	Node *node;
 	Token cur;
 
-	node = parseTerm();
+	node = parseSimpleExpression();
 	cur = _lexer->current(); 
-	while (cur.type == OPERATOR && (cur.token == "+" || cur.token == "-" || cur.token == "or" || cur.token == "<"))
+	while (cur.type == OPERATOR && (cur.token == "=" || cur.token == "<>" || cur.token == "<" || cur.token == ">" || cur.token == "<=" || cur.token == ">="))
+	{
+		node->parent = new BinaryOperation(cur);
+		node->parent->child.push_back(node);
+		node = node->parent;
+		node->child.push_back(parseSimpleExpression());
+		cur = _lexer->current();
+	}
+	return node;
+}
+
+Node* Parser::parseSimpleExpression()
+{
+	Node *node;
+	Token cur;
+
+	node = parseTerm();
+	cur = _lexer->current();
+	while (cur.type == OPERATOR && (cur.token == "+" || cur.token == "-" || cur.token == "or"))
 	{
 		node->parent = new BinaryOperation(cur);
 		node->parent->child.push_back(node);
@@ -494,7 +720,6 @@ Node* Parser::parseExpression()
 		cur = _lexer->current();
 	}
 	return node;
-	
 }
 
 Node* Parser::parseTerm()

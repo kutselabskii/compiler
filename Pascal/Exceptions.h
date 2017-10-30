@@ -8,7 +8,7 @@ class LexerError : std::exception
 public:
 	LexerError(int line, int column, char c)
 	{
-		s = "(Line: " + std::to_string(line) + "; Column: " + std::to_string(column) + "): Unexpected symbol: '" + c + "'";
+		s = "Lexer error :: (Line: " + std::to_string(line) + "; Column: " + std::to_string(column) + "): Unexpected symbol: '" + c + "'";
 	}
 
 	~LexerError()
@@ -40,9 +40,9 @@ enum ParserErrorType
 class ParserError : std::exception
 {
 public:
-	ParserError(int line, int column, std::string token, int type)
+	ParserError(int line, int column, std::string token, int type, std::string symbol = "")
 	{
-		s = "(Line: " + std::to_string(line) + "; Column: " + std::to_string(column) + "): ";
+		s = "Parser error :: (Line: " + std::to_string(line) + "; Column: " + std::to_string(column) + "): ";
 		switch (type)
 		{
 		case OPERATOREXPECTED:
@@ -59,25 +59,16 @@ public:
 			break;
 		case KEYWORDEXPECTED:
 			s += "Keyword";
+			break;
 		case CONSTANTEXPECTED:
 			s += "Constant";
+			break;
+		case SYMBOLEXPECTED:
+			s += "'" + symbol + "'";
 		}
 		s += " expected but '" + token + "' found";
 	}
 
-
-	ParserError(int line, int column, std::string token, int type, std::string symbol)
-	{
-		s = "(Line: " + std::to_string(line) + "; Column: " + std::to_string(column) + "): '";
-		switch (type)
-		{
-			
-		case SYMBOLEXPECTED:
-			s += symbol;
-			break;
-		}
-		s += "' expected but '" + token + "' found";
-	}
 
 	virtual const char* what() const override
 	{
